@@ -79,6 +79,91 @@ input, textarea, [data-baseweb="select"] > div {
 </style>
 """
 
+MOBILE_CSS = """
+<style>
+.st-key-tm_nav [role="radiogroup"] { width: 100%; gap: 0.35rem; }
+.st-key-tm_nav label {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  white-space: normal !important;
+  overflow: hidden;
+}
+.st-key-tm_nav [data-baseweb="radio"] {
+  display: flex !important;
+  width: 100%;
+  align-items: flex-start;
+  direction: rtl;
+}
+.st-key-tm_nav [data-baseweb="radio"] > div:first-child { display: none !important; }
+.st-key-tm_nav label p,
+[data-testid="stSidebar"] label p,
+[data-testid="stSidebar"] button p {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  line-height: 1.5;
+  text-align: right;
+  margin: 0;
+}
+[data-testid="stSidebar"] {
+  overflow-x: hidden;
+}
+[data-testid="stSidebar"] button {
+  white-space: normal !important;
+  height: auto !important;
+  min-height: 2.4rem;
+  line-height: 1.45;
+}
+[data-testid="stSidebar"] [data-testid="stCheckbox"] label {
+  align-items: flex-start;
+  width: 100%;
+}
+@media (max-width: 768px) {
+  [data-testid="stMainBlockContainer"], .main .block-container {
+    padding: 4.5rem 0.85rem 2.4rem !important;
+    max-width: 100% !important;
+  }
+  [data-testid="stHeading"] h1,
+  [data-testid="stHeading"] h2,
+  h1, h2, h3, p, label, .stMarkdown, [data-testid="stCaption"] {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    line-height: 1.65;
+  }
+  [data-testid="stHeading"] h1, h1 { font-size: 1.45rem !important; }
+  [data-testid="stHeading"] h2, h2 { font-size: 1.2rem !important; }
+  [data-testid="stMetricValue"] { font-size: 1.25rem !important; overflow-wrap: anywhere; }
+  section[data-testid="stSidebar"] {
+    width: min(88vw, 22rem) !important;
+    min-width: 0 !important;
+    max-width: min(88vw, 22rem) !important;
+    z-index: 1000001;
+  }
+  [data-testid="stAppViewContainer"]:has([data-testid="stExpandSidebarButton"]) section[data-testid="stSidebar"] {
+    transform: translateX(115%) !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+  }
+  [data-testid="stExpandSidebarButton"] {
+    position: fixed !important;
+    top: 0.6rem !important;
+    left: 0.6rem !important;
+    right: auto !important;
+    z-index: 1000005 !important;
+    border-radius: 12px !important;
+    border: 1px solid #c5a059 !important;
+    background: #0c2418 !important;
+  }
+  .tm-brand h2 { font-size: 1.3rem; }
+  .tm-brand p { font-size: 0.82rem; }
+}
+</style>
+"""
+
 
 def _uid(prefix: str) -> str:
     return f"{prefix}-{uuid.uuid4().hex[:8]}"
@@ -1422,9 +1507,10 @@ def main() -> None:
         page_title="منصة تميّز | مرور العارضة",
         page_icon="🏅",
         layout="wide",
-        initial_sidebar_state="expanded",
+        initial_sidebar_state="auto",
     )
     st.html(APP_CSS)
+    st.markdown(MOBILE_CSS, unsafe_allow_html=True)
     if "report" not in st.session_state:
         st.session_state.report = default_report()
     if "pending_import" in st.session_state:
