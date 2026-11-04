@@ -1,0 +1,4 @@
+Noto Naskh Arabic and Noto Sans
+Copyright 2014-2024 The Noto Project Authors
+Licensed under the SIL Open Font License, Version 1.1
+https://openfontlicense.org

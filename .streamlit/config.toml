@@ -1,0 +1,24 @@
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "dark"
+primaryColor = "#1f8a4c"
+backgroundColor = "#07150c"
+secondaryBackgroundColor = "#0c2418"
+textColor = "#f4fff8"
+font = "Cairo:https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap"
+headingFont = "Cairo:https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&display=swap"
+baseFontSize = 16
+baseRadius = "10px"
+buttonRadius = "10px"
+showWidgetBorder = true
+showSidebarBorder = true
+borderColor = "#1f6b45"
+linkColor = "#e7c98a"
+
+[theme.sidebar]
+backgroundColor = "#06140e"
+secondaryBackgroundColor = "#0c2418"
+textColor = "#f4fff8"
+borderColor = "#c5a059"

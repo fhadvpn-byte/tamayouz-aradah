@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>منصة تميّز | تقارير جائزة مدير الأمن العام - مرور محافظة العارضة</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0b4f26;
+      --primary-dark: #073519;
+      --gold: #c5a059;
+      --gold-light: #f5ebd6;
+      --navy: #16222f;
+      --bg-light: #f4f6f8;
+      --border: #dcdcdc;
+      --text: #1e293b;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Cairo', sans-serif;
+    }
+    body {
+      background-color: #e2e8f0;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    /* شريط علوي للنظام */
+    .app-topbar {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      color: #fff;
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid var(--gold);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      z-index: 100;
+    }
+    .app-topbar .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .app-topbar h1 {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .app-topbar span {
+      font-size: 12px;
+      color: var(--gold-light);
+      display: block;
+    }
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 7px 14px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+    .btn-gold {
+      background: var(--gold);
+      color: #fff;
+    }
+    .btn-gold:hover { background: #b08d47; }
+    .btn-white {
+      background: #fff;
+      color: var(--primary-dark);
+    }
+    .btn-white:hover { background: var(--gold-light); }
+    .btn-danger {
+      background: #dc2626;
+      color: #fff;
+    }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+    /* الحاوية الرئيسية */
+    .main-workspace {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    /* لوحة التحكم والإدخال */
+    .editor-sidebar {
+      width: 470px;
+      background: #fff;
+      border-left: 2px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .tabs-nav {
+      display: flex;
+      flex-wrap: wrap;
+      background: var(--navy);
+      padding: 6px;
+      gap: 4px;
+    }
+    .tab-btn {
+      flex: 1 1 30%;
+      padding: 6px 8px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #cbd5e1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+      transition: 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--gold);
+      color: #fff;
+      border-color: #fff;
+    }
+    .tab-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .section-toggle-bar {
+      background: var(--gold-light);
+      border: 1px solid var(--gold);
+      padding: 10px 12px;
+      border-radius: 6px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--primary-dark);
+    }
+    .form-group {
+      margin-bottom: 12px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--navy);
+    }
+    .form-control {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 13px;
+      background: #f8fafc;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #fff;
+    }
+    textarea.form-control {
+      resize: vertical;
+      min-height: 70px;
+    }
+    .dynamic-card {
+      border: 1px solid #cbd5e1;
+      border-right: 4px solid var(--primary);
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: #f8fafc;
+      position: relative;
+    }
+    .dynamic-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed #cbd5e1;
+      font-weight: 800;
+      color: var(--primary-dark);
+      font-size: 13px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    /* منطقة المعاينة الحية */
+    .preview-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 25px;
+      background: #cbd5e1;
+    }
+    /* تصميم صفحات التقرير A4 */
+    .report-page {
+      width: 210mm;
+      min-height: 297mm;
+      background: #fff;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      position: relative;
+      padding: 16mm 16mm 20mm 16mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 1px solid #ddd;
+    }
+    /* إطار زخرفي رسمي للصفحة */
+    .report-page::before {
+      content: "";
+      position: absolute;
+      top: 7mm;
+      bottom: 7mm;
+      left: 7mm;
+      right: 7mm;
+      border: 2px solid var(--primary);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .report-page::after {
+      content: "";
+      position: absolute;
+      top: 9mm;
+      bottom: 9mm;
+      left: 9mm;
+      right: 9mm;
+      border: 1px solid var(--gold);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .page-inner {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    /* ترويسة الصفحة الرسمية */
+    .official-header {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr 1.3fr;
+      align-items: center;
+      border-bottom: 3px double var(--gold);
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+    }
+    .header-right {
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.55;
+      color: var(--primary-dark);
+    }
+    .header-center {
+      text-align: center;
+    }
+    .header-center img {
+      height: 72px;
+      width: auto;
+      object-fit: contain;
+    }
+    .header-left {
+      text-align: left;
+      font-size: 11.5px;
+      font-weight: 700;
+      line-height: 1.6;
+      color: var(--navy);
+    }
+    /* غلاف التقرير */
+    .cover-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-align: center;
+      padding: 15px 10px;
+    }
+    .cover-badge {
+      display: inline-block;
+      background: var(--gold-light);
+      color: var(--primary-dark);
+      border: 1px solid var(--gold);
+      padding: 6px 22px;
+      border-radius: 30px;
+      font-weight: 800;
+      font-size: 14px;
+      margin: 10px auto;
+    }
+    .cover-title-frame {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      color: #fff;
+      padding: 28px 24px;
+      border-radius: 12px;
+      border: 3px solid var(--gold);
+      box-shadow: 0 6px 18px rgba(11,79,38,0.18);
+      margin: 15px 0;
+    }
+    .cover-title-frame h2 {
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.5;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .cover-title-frame p {
+      font-size: 14px;
+      color: var(--gold-light);
+      font-weight: 700;
+    }
+    .executive-box {
+      text-align: right;
+      background: #f8fafc;
+      border-right: 5px solid var(--gold);
+      border-top: 1px solid #e2e8f0;
+      border-left: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 14px 18px;
+      border-radius: 8px;
+      margin: 12px 0;
+    }
+    .executive-box h3 {
+      font-size: 15px;
+      color: var(--primary-dark);
+      margin-bottom: 6px;
+      font-weight: 800;
+    }
+    .executive-box p {
+      font-size: 13px;
+      line-height: 1.75;
+      color: #334155;
+      text-align: justify;
+    }
+    .cover-Sign-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 15px;
+    }
+    .cover-sign-card {
+      background: #fff;
+      border: 1.5px solid var(--gold);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    .cover-sign-card .role {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 700;
+    }
+    .cover-sign-card .name {
+      font-size: 14.5px;
+      color: var(--primary-dark);
+      font-weight: 900;
+      margin-top: 4px;
+    }
+    /* عناوين المحاور داخل التقرير */
+    .sec-heading {
+      background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+      color: #fff;
+      padding: 7px 14px;
+      border-right: 6px solid var(--gold);
+      border-radius: 4px;
+      font-size: 15px;
+      font-weight: 800;
+      margin: 12px 0 10px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sec-heading span {
+      font-size: 11.5px;
+      color: var(--gold-light);
+      font-weight: 600;
+    }
+    /* بطاقات الإحصائيات والحوكمة */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .kpi-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-top: 3px solid var(--primary);
+      border-radius: 6px;
+      padding: 8px;
+      text-align: center;
+    }
+    .kpi-card .num {
+      font-size: 19px;
+      font-weight: 900;
+      color: var(--primary-dark);
+    }
+    .kpi-card .lbl {
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+    }
+    /* بطاقات التطبيقات الذكية */
+    .apps-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .app-report-card {
+      border: 1px solid #cbd5e1;
+      border-right: 5px solid var(--primary);
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #fff;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      page-break-inside: avoid;
+    }
+    .app-report-card h4 {
+      font-size: 14.5px;
+      color: var(--primary-dark);
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+    .app-report-card .badge-impact {
+      display: inline-block;
+      background: var(--gold-light);
+      color: var(--primary-dark);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .app-report-card p {
+      font-size: 12px;
+      color: #334155;
+      line-height: 1.55;
+    }
+    .app-media-box {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .app-media-box img.app-shot {
+      width: 95px;
+      height: 70px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid var(--gold);
+    }
+    .app-media-box img.app-qr {
+      width: 65px;
+      height: 65px;
+      object-fit: contain;
+      border: 1px solid #cbd5e1;
+      padding: 2px;
+      border-radius: 4px;
+    }
+    /* الجداول الرسمية */
+    .official-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+      font-size: 12px;
+      page-break-inside: avoid;
+    }
+    .official-table th {
+      background: var(--primary-dark);
+      color: #fff;
+      padding: 7px 8px;
+      border: 1px solid var(--primary-dark);
+      font-weight: 800;
+      text-align: right;
+    }
+    .official-table td {
+      padding: 6px 8px;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+      vertical-align: middle;
+    }
+    .official-table tr:nth-child(even) {
+      background: #f8fafc;
+    }
+    .score-pill {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11.5px;
+      display: inline-block;
+    }
+    /* شبكة الصور بدون تشويه */
+    .photos-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 8px;
+      page-break-inside: avoid;
+    }
+    .photo-frame {
+      border: 1px solid var(--gold);
+      border-radius: 6px;
+      overflow: hidden;
+      background: #f8fafc;
+      page-break-inside: avoid;
+    }
+    .photo-frame img {
+      width: 100%;
+      height: 145px;
+      object-fit: cover;
+      display: block;
+    }
+    .photo-frame .caption {
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      color: var(--navy);
+      background: var(--gold-light);
+    }
+    /* تذييل الصفحة */
+    .page-footer {
+      border-top: 2px solid var(--gold);
+      padding-top: 6px;
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+      position: relative;
+      z-index: 2;
+    }
+    /* إعدادات الطباعة الاحترافية PDF */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+      body {
+        background: #fff !important;
+        height: auto !important;
+        overflow: visible !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .app-topbar,
+      .editor-sidebar {
+        display: none !important;
+      }
+      .main-workspace {
+        display: block !important;
+        overflow: visible !important;
+      }
+      .preview-area {
+        padding: 0 !important;
+        background: #fff !important;
+        display: block !important;
+      }
+      .report-page {
+        box-shadow: none !important;
+        border: none !important;
+        margin: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+      .report-page:last-child {
+        page-break-after: auto !important;
+        break-after: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- الشريط العلوي -->
+  <header class="app-topbar">
+    <div class="brand">
+      <div>
+        <h1>منصة تميّز | قسم مرور محافظة العارضة</h1>
+        <span>المنظومة الرقمية لإعداد تقارير جائزة معالي مدير الأمن العام للانضباط السلوكي والتميز المؤسسي</span>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn btn-gold" onclick="window.print()">🖨️ طباعة / تصدير التقرير PDF</button>
+      <button class="btn btn-white" onclick="exportDataJSON()">💾 حفظ ملف التقرير (JSON)</button>
+      <button class="btn btn-white" onclick="document.getElementById('importFile').click()">📂 فتح ملف سابق</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importDataJSON(event)">
+      <button class="btn btn-danger" onclick="resetDefaultData()">🔄 استعادة الافتراضي</button>
+    </div>
+  </header>
+
+  <!-- مساحة العمل -->
+  <div class="main-workspace">
+    <!-- القائمة الجانبية لإدخال البيانات -->
+    <aside class="editor-sidebar">
+      <div class="tabs-nav">
+        <button class="tab-btn active" onclick="openTab('tab-cover', this)">1. الغلاف والبيانات</button>
+        <button class="tab-btn" onclick="openTab('tab-gov', this)">2. الحوكمة والقيم</button>
+        <button class="tab-btn" onclick="openTab('tab-apps', this)">3. تطبيقاتنا الذكية</button>
+        <button class="tab-btn" onclick="openTab('tab-staff', this)">4. تقييم المتميزين</button>
+        <button class="tab-btn" onclick="openTab('tab-workshops', this)">5. الورش والاجتماعات</button>
+        <button class="tab-btn" onclick="openTab('tab-field', this)">6. الميدان والندوات</button>
+        <button class="tab-btn" onclick="openTab('tab-kpi', this)">7. الأثر والاعتماد</button>
+      </div>
+
+      <!-- تبويب 1: الغلاف والبيانات الأساسية -->
+      <div id="tab-cover" class="tab-content active">
+        <div class="section-toggle-bar">
+          <span>بيانات الغلاف والملخص التنفيذي</span>
+        </div>
+        <div class="form-group">
+          <label>رفع شعار الأمن العام / المرور (اختياري)</label>
+          <input type="file" class="form-control" accept="image/*" onchange="handleLogoUpload(event)">
+        </div>
+        <div class="form-group">
+          <label>عنوان التقرير الرئيسي</label>
+          <textarea class="form-control" id="in-title" oninput="updateModel()"></textarea>
+        </div>
+        <div class="form-group">
+          <label>العنوان الفرعي على الغلاف</label>
+          <input type="text" class="form-control" id="in-subtitle" oninput="updateModel()">
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>التاريخ الهجري</label>
+            <input type="text" class="form-control" id="in-hijri" oninput="updateModel()">
+          </div>
+          <div class="form-group">
+            <label>التاريخ الميلادي</label>
+            <input type="text" class="form-control" id="in-greg" oninput="updateModel()">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>رقم التقرير / المرجع</label>
+          <input type="text" class="form-control" id="in-ref" oninput="updateModel()">
+        </div>
+        <div class="form-group">
+          <label>مدير قسم مرور محافظة العارضة (الاعتماد)</label>
+          <input type="text" class="form-control" id="in-manager" oninput="updateModel()">
+        </div>
+        <div class="form-group">
+          <label>معد التقرير والمشرف التقني</label>
+          <input type="text" class="form-control" id="in-author" oninput="updateModel()">
+        </div>
+        <div class="form-group">
+          <label>الملخص التنفيذي والكلمة التمهيدية</label>
+          <textarea class="form-control" id="in-exec" rows="5" oninput="updateModel()"></textarea>
+        </div>
+      </div>
+
+      <!-- تبويب 2: الحوكمة ومصفوفة القيم -->
+      <div id="tab-gov" class="tab-content">
+        <div class="section-toggle-bar">
+          <span>إظهار محور الحوكمة ومصفوفة القيم</span>
+          <input type="checkbox" id="tog-gov" onchange="updateModel()">
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>إجمالي القوة البشرية (أفراد)</label>
+            <input type="text" class="form-control" id="in-staffCount" oninput="updateModel()">
+          </div>
+          <div class="form-group">
+            <label>نسبة الانضباط السلوكي والقيافة</label>
+            <input type="text" class="form-control" id="in-discRate" oninput="updateModel()">
+          </div>
+          <div class="form-group">
+            <label>الأنظمة الرقمية المفعلة بالقسم</label>
+            <input type="text" class="form-control" id="in-sysCount" oninput="updateModel()">
+          </div>
+          <div class="form-group">
+            <label>المخالفات المسلكية المسجلة</label>
+            <input type="text" class="form-control" id="in-violations" oninput="updateModel()">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>وصف الحوكمة والانضباط الإداري بالقسم</label>
+          <textarea class="form-control" id="in-govText" rows="4" oninput="updateModel()"></textarea>
+        </div>
+        <div class="form-group">
+          <label>تطبيق قيمة "المسؤولية: أداء الواجب بإتقان والوفاء بالالتزامات"</label>
+          <textarea class="form-control" id="in-valText" rows="4" oninput="updateModel()"></textarea>
+        </div>
+      </div>
+
+      <!-- تبويب 3: التطبيقات الذكية -->
+      <div id="tab-apps" class="tab-content">
+        <div class="section-toggle-bar">
+          <span>إظهار محور التطبيقات الذكية (حسم، رقابة، بينة)</span>
+          <input type="checkbox" id="tog-apps" onchange="updateModel()">
+        </div>
+        <div id="apps-editor-list"></div>
+        <button class="btn btn-primary" style="width:100%" onclick="addAppItem()">+ إضافة تطبيق أو مبادرة رقمية جديدة</button>
+      </div>
+
+      <!-- تبويب 4: تقييم وانضباط الأفراد المتميزين -->
+      <div id="tab-staff" class="tab-content">
+        <div class="section-toggle-bar">
+          <span>إظهار قسم تقييم وترشيح الأفراد المتميزين بالقسم</span>
+          <input type="checkbox" id="tog-staff" onchange="updateModel()">
+        </div>
+        <p style="font-size:12px; color:#475569; margin-bottom:10px;">
+          يبرز هذا القسم أسماء الأفراد المتميزين والمرشحين لجائزة معالي مدير الأمن العام للانضباط السلوكي وفق معايير قياس دقيقة.
+        </p>
+        <div id="staff-editor-list"></div>
+        <button class="btn btn-primary" style="width:100%" onclick="addStaffItem()">+ إضافة فرد متميز / مرشح</button>
+      </div>
+
+      <!-- تبويب 5: ورش العمل والاجتماعات -->
+      <div id="tab-workshops" class="tab-content">
+        <div class="section-toggle-bar">
+          <span>إظهار محور ورش العمل والاجتماعات التثقيفية</span>
+          <input type="checkbox" id="tog-workshops" onchange="updateModel()">
+        </div>
+        <div id="workshops-editor-list"></div>
+        <button class="btn btn-primary" style="width:100%" onclick="addWorkshopItem()">+ إضافة ورشة عمل أو اجتماع</button>
+      </div>
+
+      <!-- تبويب 6: الانضباط الميداني والندوات -->
+      <div id="tab-field" class="tab-content">
+        <div class="section-toggle-bar">
+          <span>إظهار محور الميدان والندوات التوعوية</span>
+          <input type="checkbox" id="tog-field" onchange="updateModel()">
+        </div>
+        <div class="form-group">
+          <label>جهود الانضباط الميداني وإدارة الطرق الجبلية والأودية بالعارضة</label>
+          <textarea class="form-control" id="in-fieldText" rows="4" oninput="updateModel()"></textarea>
+        </div>
+        <div id="seminars-editor-list"></div>
+        <button class="btn btn-primary" style="width:100%" onclick="addSeminarItem()">+ إضافة ندوة أو مبادرة ميدانية مع الصور</button>
+      </div>
+
+      <!-- تبويب 7: مؤشرات الأثر والاعتماد -->
+      <div id="tab-kpi" class="tab-content">
+        <div class="section-toggle-bar">
+          <span>إظهار محور المقارنة وميثاق الانضباط والاعتماد</span>
+          <input type="checkbox" id="tog-kpi" onchange="updateModel()">
+        </div>
+        <div class="form-group">
+          <label>ميثاق الانضباط السلوكي لمنسوبي قسم مرور العارضة</label>
+          <textarea class="form-control" id="in-pledge" rows="4" oninput="updateModel()"></textarea>
+        </div>
+        <div class="form-group">
+          <label>التوصيات والمخرجات الختامية</label>
+          <textarea class="form-control" id="in-recommendations" rows="4" oninput="updateModel()"></textarea>
+        </div>
+      </div>
+    </aside>
+
+    <!-- منطقة معاينة صفحات A4 الحية -->
+    <main class="preview-area" id="report-preview-container">
+      <!-- يتم توليد صفحات A4 تلقائياً هنا -->
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'ARD_TRAFFIC_AWARD_REPORT_V1';
+
+    // شعار افتراضي رسمي بصيغة SVG
+    const DEFAULT_LOGO_SVG = `data:image/svg+xml;utf8,` + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160">
+        <circle cx="80" cy="80" r="74" fill="#0b4f26" stroke="#c5a059" stroke-width="6"/>
+        <circle cx="80" cy="80" r="64" fill="none" stroke="#c5a059" stroke-width="2" stroke-dasharray="4,4"/>
+        <path d="M80 28 L80 78 M62 46 Q80 34 98 46 M56 60 Q80 46 104 60" stroke="#c5a059" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M48 96 Q80 76 112 96 M52 84 Q80 104 108 84" stroke="#c5a059" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <text x="80" y="128" font-family="Cairo, sans-serif" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">الأمن العام - المرور</text>
+      </svg>
+    `);
+
+    function getDefaultState() {
+      return {
+        logo: DEFAULT_LOGO_SVG,
+        title: "تقرير المنظومة الرقمية وورش العمل التثقيفية وتقييم الانضباط السلوكي بشأن جائزة معالي مدير الأمن العام",
+        subtitle: "نموذج التحول الرقمي والانضباط المؤسسي والميداني بقسم مرور محافظة العارضة",
+        hijri: "٢٤ / ٠٥ / ١٤٤٨ هـ",
+        greg: "٢٠٢٦/١١/٠٤ م",
+        ref: "ت م / ع / ١٤٤٨/٠١",
+        manager: "رئيس رقباء / سلمان بن علي دوشي",
+        author: "رئيس قسم الحوادث / فهد أحمد بن محمد مجرشي",
+        exec: "انطلاقاً من توجيهات قيادة الأمن العام والإدارة العامة للمرور، وحرصاً من قسم مرور محافظة العارضة التابع لإدارة مرور منطقة جازان على تحقيق أعلى معايير جائزة معالي مدير الأمن العام للانضباط السلوكي تحت شعار (هدفنا أمن وتواصل)، يقدم هذا التقرير الشامل توثيقاً عملياً يتجاوز الأطر النظرية التقليدية؛ حيث نجح القسم في ابتكار وتفعيل منظومة تطبيقات رقمية نوعية (حسم، رقابة، بينة) لترسيخ قيم المسؤولية وإتقان الواجب، إلى جانب عقد ورش العمل التثقيفية وتقييم وتحفيز الأفراد المتميزين والارتقاء بالأداء الميداني.",
+        showGov: true,
+        staffCount: "30 فرداً",
+        discRate: "100%",
+        sysCount: "3 أنظمة ذكية",
+        violations: "صفر (0)",
+        govText: "يعمل قسم مرور محافظة العارضة بكادر متكامل قوامه (30) فرداً من الكفاءات الميدانية والإدارية المؤهلة، وفق منظومة حوكمة داخلية تشمل التوجيه اليومي المسبق قبل استلام المهام، والالتزام التام بالقيافة والمظهر العسكري، والانضباط الدقيق في أوقات الاستلام والتسليم، ومتابعة الأداء لحظياً.",
+        valText: "تم تحويل قيمة (المسؤولية: تحفز على أداء الواجب بإتقان، والوفاء بالالتزامات، وتحمل النتائج) إلى واقع ملموس عبر أتمتة الإجراءات لمنع الاجتهادات الشخصية، وسرعة إنهاء إجراءات المواطنين والمقيمين، وتوثيق كافة المهام بشفافية ونزاهة مطلقة.",
+        showApps: true,
+        apps: [
+          {
+            name: "منظومة «حسم» (HASM)",
+            impact: "حوكمة الإجراءات وسرعة الإنجاز والانضباط",
+            desc: "تطبيق ذكي يعزز سرعة الحسم الإجرائي في المعاملات والوقائع المرورية، ويمنع أي تأخير أو تراخٍ، مما يجسد قيمة الوفاء بالالتزامات وإتقان الواجب بدقة عالية.",
+            screenshot: "",
+            qr: ""
+          },
+          {
+            name: "منظومة «رقابة» (RAQABAH)",
+            impact: "الرقابة الذاتية والميدانية ومتابعة الانضباط",
+            desc: "نظام متكامل للمتابعة الإدارية والميدانية وحركة المركبات المحجوزة ومؤشرات الأداء، يضمن أعلى درجات الانضباط السلوكي والعملي والالتزام بالتعليمات.",
+            screenshot: "",
+            qr: ""
+          },
+          {
+            name: "منظومة «بينة» (BAYYINAH)",
+            impact: "العدالة والحيادية التامة في تحليل الحوادث",
+            desc: "منظومة تقنية متقدمة لتحليل وصف الحوادث المرورية وإسنادها آلياً إلى مواد نظام المرور السعودي لتحديد نسب المسؤولية وإصدار تقارير PDF رسمية بنزاهة وشفافية.",
+            screenshot: "",
+            qr: ""
+          }
+        ],
+        showStaff: true,
+        staffList: [
+          {
+            rank: "رئيس رقباء",
+            name: "سلمان بن علي دوشي",
+            role: "مدير قسم مرور محافظة العارضة",
+            s1: 100,
+            s2: 100,
+            s3: 100,
+            reason: "القيادة القدوة، الإشراف المباشر على ورش التثقيف بالجائزة، ودعم التحول الرقمي والانضباط الكامل بالقسم."
+          },
+          {
+            rank: "رئيس قسم الحوادث",
+            name: "فهد أحمد بن محمد مجرشي",
+            role: "رئيس قسم الحوادث ومبتكر الأنظمة الرقمية",
+            s1: 100,
+            s2: 100,
+            s3: 100,
+            reason: "ابتكار وتطوير منظومات (حسم، رقابة، بينة) لتعزيز النزاهة والانضباط الإجرائي والميداني بالقسم."
+          },
+          {
+            rank: "فرد متميز",
+            name: "نموذج مرشح الانضباط الميداني (قابل للتعديل)",
+            role: "مباشرة الحوادث والميدان",
+            s1: 99,
+            s2: 98,
+            s3: 99,
+            reason: "الانضباط المثالي بالقيافة العسكرية، سرعة الاستجابة للبلاغات في الطرق الجبلية، والتطبيق الدقيق للأنظمة."
+          }
+        ],
+        showWorkshops: true,
+        workshops: [
+          {
+            title: "ورشة عمل تثقيفية للأفراد بشأن جائزة معالي مدير الأمن العام للانضباط السلوكي",
+            location: "مقر قسم مرور محافظة العارضة",
+            speaker: "مدير القسم رئيس رقباء / سلمان بن علي دوشي & رئيس قسم الحوادث / فهد أحمد مجرشي",
+            datetime: "الأربعاء ٢٤ / ٠٥ / ١٤٤٨ هـ - الساعة ١٠:٠٠ صباحاً",
+            target: "منسوبو وأفراد قسم مرور محافظة العارضة (30 فرداً)",
+            outcomes: "شرح شروط ومعايير الجائزة وطريقة تحقيقها، ترسيخ مفهوم المسؤولية وأداء الواجب بإتقان، وربط الانضباط السلوكي بالتطبيقات الرقمية المعتمدة في القسم (حسم، رقابة، بينة).",
+            photos: []
+          }
+        ],
+        showField: true,
+        fieldText: "نظراً للطبيعة الجغرافية لمحافظة العارضة وما تضمه من طرق جبلية وعقبات وأودية تشهد أمطاراً وسيولاً موسمية، يطبق أفراد القسم أعلى درجات الجاهزية والانضباط الميداني في الانتشار المبكر، ومباشرة الحوادث المرورية بوقت قياسي، وتقديم المساندة الإنسانية العاجلة لسائقي المركبات تجسيداً لشعار (هدفنا أمن وتواصل).",
+        seminars: [
+          {
+            title: "المبادرات التوعوية والندوات الميدانية للسلامة المرورية والانضباط",
+            date: "الربع الثاني ١٤٤٨ هـ",
+            impact: "رفع الوعي المروري وتعزيز الشراكة المجتمعية مع الجهات التعليمية والحكومية بالمحافظة.",
+            desc: "تنفيذ برامج توعوية وميدانية تهدف إلى الحد من المخالفات المؤثرة على السلامة العامة وإبراز الصورة المشرفة لرجل المرور المنضبط.",
+            photos: []
+          }
+        ],
+        showKpi: true,
+        pledge: "نحن منسوبي وأفراد قسم مرور محافظة العارضة نعاهد الله ثم نعاهد ولاة أمرنا وقيادتنا الأمنية على الالتزام التام بالانضباط السلوكي والعسكري، وأداء واجبنا الوطني بإتقان وأمانة، والوفاء بكافة التزاماتنا تجاه خدمة الوطن والمواطن والمقيم، وتحمل المسؤولية الكاملة في تطبيق الأنظمة بعدالة ونزاهة.",
+        recommendations: "١. استمرار تفعيل وتطوير الأنظمة الرقمية (حسم، رقابة، بينة) وتعميم تجربتها بوصفها نموذجاً عملياً للانضباط.\n٢. عقد لقاءات تقييم دورية شهرية لقياس مؤشرات الانضباط السلوكي وتكريم الأفراد المتميزين.\n٣. توثيق كافة المبادرات الميدانية والتقنية ورفعها بشكل دوري لمرجعنا."
+      };
+    }
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+      return getDefaultState();
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.warn("حجم الصور كبير للحفظ التلقائي، لكنها متاحة للطباعة والتصدير.");
+      }
+    }
+
+    function openTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // مزامنة الحقول الثابتة مع النموذج
+    function populateStaticInputs() {
+      document.getElementById('in-title').value = state.title;
+      document.getElementById('in-subtitle').value = state.subtitle;
+      document.getElementById('in-hijri').value = state.hijri;
+      document.getElementById('in-greg').value = state.greg;
+      document.getElementById('in-ref').value = state.ref;
+      document.getElementById('in-manager').value = state.manager;
+      document.getElementById('in-author').value = state.author;
+      document.getElementById('in-exec').value = state.exec;
+      document.getElementById('tog-gov').checked = state.showGov;
+      document.getElementById('in-staffCount').value = state.staffCount;
+      document.getElementById('in-discRate').value = state.discRate;
+      document.getElementById('in-sysCount').value = state.sysCount;
+      document.getElementById('in-violations').value = state.violations;
+      document.getElementById('in-govText').value = state.govText;
+      document.getElementById('in-valText').value = state.valText;
+      document.getElementById('tog-apps').checked = state.showApps;
+      document.getElementById('tog-staff').checked = state.showStaff;
+      document.getElementById('tog-workshops').checked = state.showWorkshops;
+      document.getElementById('tog-field').checked = state.showField;
+      document.getElementById('in-fieldText').value = state.fieldText;
+      document.getElementById('tog-kpi').checked = state.showKpi;
+      document.getElementById('in-pledge').value = state.pledge;
+      document.getElementById('in-recommendations').value = state.recommendations;
+    }
+
+    function updateModel() {
+      state.title = document.getElementById('in-title').value;
+      state.subtitle = document.getElementById('in-subtitle').value;
+      state.hijri = document.getElementById('in-hijri').value;
+      state.greg = document.getElementById('in-greg').value;
+      state.ref = document.getElementById('in-ref').value;
+      state.manager = document.getElementById('in-manager').value;
+      state.author = document.getElementById('in-author').value;
+      state.exec = document.getElementById('in-exec').value;
+      state.showGov = document.getElementById('tog-gov').checked;
+      state.staffCount = document.getElementById('in-staffCount').value;
+      state.discRate = document.getElementById('in-discRate').value;
+      state.sysCount = document.getElementById('in-sysCount').value;
+      state.violations = document.getElementById('in-violations').value;
+      state.govText = document.getElementById('in-govText').value;
+      state.valText = document.getElementById('in-valText').value;
+      state.showApps = document.getElementById('tog-apps').checked;
+      state.showStaff = document.getElementById('tog-staff').checked;
+      state.showWorkshops = document.getElementById('tog-workshops').checked;
+      state.showField = document.getElementById('tog-field').checked;
+      state.fieldText = document.getElementById('in-fieldText').value;
+      state.showKpi = document.getElementById('tog-kpi').checked;
+      state.pledge = document.getElementById('in-pledge').value;
+      state.recommendations = document.getElementById('in-recommendations').value;
+      saveState();
+      renderPreview();
+    }
+
+    // بناء محرر التطبيقات الذكية
+    function renderAppsEditor() {
+      const container = document.getElementById('apps-editor-list');
+      container.innerHTML = state.apps.map((app, i) => `
+        <div class="dynamic-card">
+          <div class="dynamic-card-header">
+            <span>تطبيق #${i + 1}: ${app.name}</span>
+            <button class="btn btn-danger" style="padding:2px 8px;font-size:11px;" onclick="removeAppItem(${i})">حذف</button>
+          </div>
+          <div class="form-group">
+            <label>اسم التطبيق / المنظومة</label>
+            <input type="text" class="form-control" value="${escapeHtml(app.name)}" oninput="state.apps[${i}].name=this.value; saveState(); renderPreview();">
+          </div>
+          <div class="form-group">
+            <label>الارتباط بمعايير الجائزة والأثر</label>
+            <input type="text" class="form-control" value="${escapeHtml(app.impact)}" oninput="state.apps[${i}].impact=this.value; saveState(); renderPreview();">
+          </div>
+          <div class="form-group">
+            <label>وصف التطبيق ودوره في الانضباط</label>
+            <textarea class="form-control" oninput="state.apps[${i}].desc=this.value; saveState(); renderPreview();">${escapeHtml(app.desc)}</textarea>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>صورة شاشة التطبيق</label>
+              <input type="file" class="form-control" accept="image/*" onchange="uploadAppImage(event, ${i}, 'screenshot')">
+            </div>
+            <div class="form-group">
+              <label>رمز باركود (QR)</label>
+              <input type="file" class="form-control" accept="image/*" onchange="uploadAppImage(event, ${i}, 'qr')">
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addAppItem() {
+      state.apps.push({
+        name: "تطبيق رقمي جديد",
+        impact: "تعزيز الانضباط وجودة الأداء",
+        desc: "وصف المبادرة الرقمية وأثرها على العمل المروري في القسم.",
+        screenshot: "",
+        qr: ""
+      });
+      saveState();
+      renderAppsEditor();
+      renderPreview();
+    }
+
+    function removeAppItem(index) {
+      state.apps.splice(index, 1);
+      saveState();
+      renderAppsEditor();
+      renderPreview();
+    }
+
+    function uploadAppImage(event, index, field) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        state.apps[index][field] = e.target.result;
+        saveState();
+        renderPreview();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // بناء محرر تقييم الأفراد المتميزين
+    function renderStaffEditor() {
+      const container = document.getElementById('staff-editor-list');
+      container.innerHTML = state.staffList.map((st, i) => `
+        <div class="dynamic-card">
+          <div class="dynamic-card-header">
+            <span>مرشح / متميز #${i + 1}: ${st.name}</span>
+            <button class="btn btn-danger" style="padding:2px 8px;font-size:11px;" onclick="removeStaffItem(${i})">حذف</button>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>الرتبة / الصفة</label>
+              <input type="text" class="form-control" value="${escapeHtml(st.rank)}" oninput="state.staffList[${i}].rank=this.value; saveState(); renderPreview();">
+            </div>
+            <div class="form-group">
+              <label>الاسم الرباعي</label>
+              <input type="text" class="form-control" value="${escapeHtml(st.name)}" oninput="state.staffList[${i}].name=this.value; saveState(); renderPreview();">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>المهمة / العمل بالقسم</label>
+            <input type="text" class="form-control" value="${escapeHtml(st.role)}" oninput="state.staffList[${i}].role=this.value; saveState(); renderPreview();">
+          </div>
+          <div class="grid-3">
+            <div class="form-group">
+              <label>الانضباط السلوكي%</label>
+              <input type="number" min="0" max="100" class="form-control" value="${st.s1}" oninput="state.staffList[${i}].s1=Number(this.value); saveState(); renderPreview();">
+            </div>
+            <div class="form-group">
+              <label>إتقان الواجب%</label>
+              <input type="number" min="0" max="100" class="form-control" value="${st.s2}" oninput="state.staffList[${i}].s2=Number(this.value); saveState(); renderPreview();">
+            </div>
+            <div class="form-group">
+              <label>التفاعل التقني%</label>
+              <input type="number" min="0" max="100" class="form-control" value="${st.s3}" oninput="state.staffList[${i}].s3=Number(this.value); saveState(); renderPreview();">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>مبررات الترشيح وأبرز منجزات الفرد</label>
+            <textarea class="form-control" oninput="state.staffList[${i}].reason=this.value; saveState(); renderPreview();">${escapeHtml(st.reason)}</textarea>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addStaffItem() {
+      state.staffList.push({
+        rank: "رقيب / وكيل رقيب / عريف / جندي أول",
+        name: "اسم الفرد المتميز",
+        role: "مهام ميدانية / الحوادث / السير",
+        s1: 100,
+        s2: 99,
+        s3: 98,
+        reason: "الالتزام التام بالانضباط السلوكي والقيافة العسكرية وسرعة إنجاز المهام الميدانية."
+      });
+      saveState();
+      renderStaffEditor();
+      renderPreview();
+    }
+
+    function removeStaffItem(index) {
+      state.staffList.splice(index, 1);
+      saveState();
+      renderStaffEditor();
+      renderPreview();
+    }
+
+    // بناء محرر ورش العمل والاجتماعات
+    function renderWorkshopsEditor() {
+      const container = document.getElementById('workshops-editor-list');
+      container.innerHTML = state.workshops.map((w, i) => `
+        <div class="dynamic-card">
+          <div class="dynamic-card-header">
+            <span>ورشة / اجتماع #${i + 1}</span>
+            <button class="btn btn-danger" style="padding:2px 8px;font-size:11px;" onclick="removeWorkshopItem(${i})">حذف</button>
+          </div>
+          <div class="form-group">
+            <label>عنوان الورشة / الاجتماع</label>
+            <input type="text" class="form-control" value="${escapeHtml(w.title)}" oninput="state.workshops[${i}].title=this.value; saveState(); renderPreview();">
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>الموقع</label>
+              <input type="text" class="form-control" value="${escapeHtml(w.location)}" oninput="state.workshops[${i}].location=this.value; saveState(); renderPreview();">
+            </div>
+            <div class="form-group">
+              <label>الوقت والتاريخ</label>
+              <input type="text" class="form-control" value="${escapeHtml(w.datetime)}" oninput="state.workshops[${i}].datetime=this.value; saveState(); renderPreview();">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>المحاضر / المتحدث</label>
+            <input type="text" class="form-control" value="${escapeHtml(w.speaker)}" oninput="state.workshops[${i}].speaker=this.value; saveState(); renderPreview();">
+          </div>
+          <div class="form-group">
+            <label>الفئة المستهدفة والحضور</label>
+            <input type="text" class="form-control" value="${escapeHtml(w.target)}" oninput="state.workshops[${i}].target=this.value; saveState(); renderPreview();">
+          </div>
+          <div class="form-group">
+            <label>المحاور ومخرجات الاجتماع</label>
+            <textarea class="form-control" oninput="state.workshops[${i}].outcomes=this.value; saveState(); renderPreview();">${escapeHtml(w.outcomes)}</textarea>
+          </div>
+          <div class="form-group">
+            <label>رفع صور الاجتماع (يمكن اختيار عدة صور معاً)</label>
+            <input type="file" class="form-control" accept="image/*" multiple onchange="uploadWorkshopPhotos(event, ${i})">
+          </div>
+          ${w.photos.length > 0 ? `<button class="btn btn-danger" style="font-size:11px;padding:3px 8px;" onclick="state.workshops[${i}].photos=[]; saveState(); renderWorkshopsEditor(); renderPreview();">مسح صور هذا الاجتماع (${w.photos.length})</button>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function addWorkshopItem() {
+      state.workshops.push({
+        title: "اجتماع دوري لتعزيز الانضباط السلوكي ومراجعة الأداء",
+        location: "مقر قسم مرور محافظة العارضة",
+        speaker: "مدير قسم مرور محافظة العارضة",
+        datetime: "١٤٤٨ هـ",
+        target: "أفراد قسم مرور محافظة العارضة",
+        outcomes: "مناقشة مستجدات العمل الميداني والتأكيد على معايير الانضباط السلوكي وخدمة المستفيدين.",
+        photos: []
+      });
+      saveState();
+      renderWorkshopsEditor();
+      renderPreview();
+    }
+
+    function removeWorkshopItem(index) {
+      state.workshops.splice(index, 1);
+      saveState();
+      renderWorkshopsEditor();
+      renderPreview();
+    }
+
+    function uploadWorkshopPhotos(event, wIndex) {
+      const files = Array.from(event.target.files);
+      files.forEach((file, idx) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          state.workshops[wIndex].photos.push({
+            src: e.target.result,
+            caption: `توثيق جانب من ورشة العمل والاجتماع بقسم مرور محافظة العارضة (${state.workshops[wIndex].photos.length + 1})`
+          });
+          saveState();
+          renderWorkshopsEditor();
+          renderPreview();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // بناء محرر الندوات والمبادرات الميدانية
+    function renderSeminarsEditor() {
+      const container = document.getElementById('seminars-editor-list');
+      container.innerHTML = state.seminars.map((s, i) => `
+        <div class="dynamic-card">
+          <div class="dynamic-card-header">
+            <span>ندوة / مبادرة #${i + 1}</span>
+            <button class="btn btn-danger" style="padding:2px 8px;font-size:11px;" onclick="removeSeminarItem(${i})">حذف</button>
+          </div>
+          <div class="form-group">
+            <label>عنوان الندوة / المبادرة الميدانية</label>
+            <input type="text" class="form-control" value="${escapeHtml(s.title)}" oninput="state.seminars[${i}].title=this.value; saveState(); renderPreview();">
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>التاريخ / الفترة</label>
+              <input type="text" class="form-control" value="${escapeHtml(s.date)}" oninput="state.seminars[${i}].date=this.value; saveState(); renderPreview();">
+            </div>
+            <div class="form-group">
+              <label>الأثر المتحقق</label>
+              <input type="text" class="form-control" value="${escapeHtml(s.impact)}" oninput="state.seminars[${i}].impact=this.value; saveState(); renderPreview();">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>التفاصيل والشواهد</label>
+            <textarea class="form-control" oninput="state.seminars[${i}].desc=this.value; saveState(); renderPreview();">${escapeHtml(s.desc)}</textarea>
+          </div>
+          <div class="form-group">
+            <label>رفع صور الندوة أو المبادرة الميدانية</label>
+            <input type="file" class="form-control" accept="image/*" multiple onchange="uploadSeminarPhotos(event, ${i})">
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addSeminarItem() {
+      state.seminars.push({
+        title: "ندوة / مبادرة ميدانية جديدة",
+        date: "١٤٤٨ هـ",
+        impact: "تعزيز السلامة المرورية والتواصل المجتمعي",
+        desc: "وصف المبادرة أو الندوة المنفذة من قبل قسم مرور محافظة العارضة.",
+        photos: []
+      });
+      saveState();
+      renderSeminarsEditor();
+      renderPreview();
+    }
+
+    function removeSeminarItem(index) {
+      state.seminars.splice(index, 1);
+      saveState();
+      renderSeminarsEditor();
+      renderPreview();
+    }
+
+    function uploadSeminarPhotos(event, sIndex) {
+      const files = Array.from(event.target.files);
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          state.seminars[sIndex].photos.push({
+            src: e.target.result,
+            caption: `شاهد ميداني - قسم مرور محافظة العارضة`
+          });
+          saveState();
+          renderSeminarsEditor();
+          renderPreview();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function handleLogoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        state.logo = e.target.result;
+        saveState();
+        renderPreview();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function buildPageHeader() {
+      return `
+        <div class="official-header">
+          <div class="header-right">
+            المملكة العربية السعودية<br>
+            وزارة الداخلية - الأمن العام<br>
+            الإدارة العامة للمرور<br>
+            إدارة مرور منطقة جازان<br>
+            <span style="color:var(--gold)">قسم مرور محافظة العارضة</span>
+          </div>
+          <div class="header-center">
+            <img src="${state.logo}" alt="شعار المرور">
+          </div>
+          <div class="header-left">
+            الرقم المرجعي: ${escapeHtml(state.ref)}<br>
+            التاريخ الهجري: ${escapeHtml(state.hijri)}<br>
+            التاريخ الميلادي: ${escapeHtml(state.greg)}<br>
+            شعار الجائزة: <strong>هدفنا أمن وتواصل</strong>
+          </div>
+        </div>
+      `;
+    }
+
+    function buildPageFooter(pageNum, totalPages) {
+      return `
+        <div class="page-footer">
+          <span>إدارة مرور منطقة جازان - قسم مرور محافظة العارضة</span>
+          <span>جائزة معالي مدير الأمن العام للانضباط السلوكي</span>
+          <span>صفحة ${pageNum} من ${totalPages}</span>
+        </div>
+      `;
+    }
+
+    // توليد صفحات التقرير A4
+    function renderPreview() {
+      const pagesHtml = [];
+
+      // الصفحة 1: الغلاف الرسمي والملخص التنفيذي
+      pagesHtml.push(`
+        <div class="cover-box">
+          <div>
+            <span class="cover-badge">وثيقة رسمية | جائزة معالي مدير الأمن العام للانضباط السلوكي</span>
+            <div class="cover-title-frame">
+              <h2>${escapeHtml(state.title)}</h2>
+              <p>${escapeHtml(state.subtitle)}</p>
+            </div>
+          </div>
+          <div class="executive-box">
+            <h3>📌 الملخص التنفيذي والرؤية المؤسسية للقسم</h3>
+            <p>${escapeHtml(state.exec).replace(/\n/g, '<br>')}</p>
+          </div>
+          <div>
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="num">${escapeHtml(state.staffCount)}</div>
+                <div class="lbl">القوة البشرية بالقسم</div>
+              </div>
+              <div class="kpi-card">
+                <div class="num">${escapeHtml(state.discRate)}</div>
+                <div class="lbl">مؤشر الانضباط والقيافة</div>
+              </div>
+              <div class="kpi-card">
+                <div class="num">${escapeHtml(state.sysCount)}</div>
+                <div class="lbl">مبادرات التحول الرقمي</div>
+              </div>
+              <div class="kpi-card">
+                <div class="num">${escapeHtml(state.violations)}</div>
+                <div class="lbl">المخالفات المسلكية</div>
+              </div>
+            </div>
+            <div class="cover-Sign-grid">
+              <div class="cover-sign-card">
+                <div class="role">إعداد وإشراف المبادرات الرقمية</div>
+                <div class="name">${escapeHtml(state.author)}</div>
+              </div>
+              <div class="cover-sign-card">
+                <div class="role">اعتماد مدير قسم مرور محافظة العارضة</div>
+                <div class="name">${escapeHtml(state.manager)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `);
+
+      // الصفحة 2: الحوكمة ومصفوفة القيم + التطبيقات الذكية (حسم، رقابة، بينة)
+      if (state.showGov || state.showApps) {
+        let p2Content = '';
+        if (state.showGov) {
+          p2Content += `
+            <div class="sec-heading">
+              <div>أولاً: الحوكمة والانضباط الإداري ومصفوفة قيم الجائزة</div>
+              <span>المسؤولية | أداء الواجب بإتقان</span>
+            </div>
+            <table class="official-table">
+              <thead>
+                <tr>
+                  <th style="width:28%">المرتكز المؤسسي</th>
+                  <th>التطبيق الفعلي في قسم مرور محافظة العارضة</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>الحوكمة والانضباط اليومي للأفراد</strong></td>
+                  <td>${escapeHtml(state.govText)}</td>
+                </tr>
+                <tr>
+                  <td><strong>ترجمة قيمة «المسؤولية» وشعار «أمن وتواصل»</strong></td>
+                  <td>${escapeHtml(state.valText)}</td>
+                </tr>
+              </tbody>
+            </table>
+          `;
+        }
+        if (state.showApps) {
+          p2Content += `
+            <div class="sec-heading">
+              <div>ثانياً: التحول الرقمي والابتكار التقني (درع الانضباط العملي بالقسم)</div>
+              <span>مبادرات نوعية حصرية</span>
+            </div>
+            <div class="apps-grid">
+              ${state.apps.map(app => `
+                <div class="app-report-card">
+                  <div>
+                    <h4>🔹 ${escapeHtml(app.name)}</h4>
+                    <span class="badge-impact">الأثر والمعيار: ${escapeHtml(app.impact)}</span>
+                    <p>${escapeHtml(app.desc)}</p>
+                  </div>
+                  <div class="app-media-box">
+                    ${app.screenshot ? `<img src="${app.screenshot}" class="app-shot" alt="واجهة التطبيق">` : ''}
+                    ${app.qr ? `<img src="${app.qr}" class="app-qr" alt="QR">` : ''}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+        pagesHtml.push(p2Content);
+      }
+
+      // الصفحة 3: تقييم وانضباط الأفراد المتميزين بالقسم (استمارة الترشيح ولوحة الشرف)
+      if (state.showStaff) {
+        pagesHtml.push(`
+          <div class="sec-heading">
+            <div>ثالثاً: تقييم وانضباط الأفراد المتميزين بالقسم (لوحة الشرف والترشيح)</div>
+            <span>معايير قياس موضوعية</span>
+          </div>
+          <p style="font-size:12px; color:#334155; margin-bottom:10px; line-height:1.6;">
+            تحقيقاً لأهداف جائزة معالي مدير الأمن العام للانضباط السلوكي في تحفيز منسوبي الأمن العام، اعتمد قسم مرور محافظة العارضة آلية تقييم دقيقة لقياس انضباط الأفراد وإبراز الكفاءات المتميزة في الانضباط العسكري، وإتقان العمل الميداني، والتفاعل مع المنظومات الرقمية:
+          </p>
+          <table class="official-table">
+            <thead>
+              <tr>
+                <th>م</th>
+                <th>الرتبة والاسم</th>
+                <th>المهمة بالقسم</th>
+                <th>الانضباط السلوكي</th>
+                <th>إتقان الواجب</th>
+                <th>التفاعل التقني</th>
+                <th>المتوسط العام</th>
+                <th>مبررات التميز والترشيح</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${state.staffList.map((st, idx) => {
+                const avg = ((Number(st.s1) + Number(st.s2) + Number(st.s3)) / 3).toFixed(1);
+                return `
+                  <tr>
+                    <td style="text-align:center;font-weight:bold;">${idx + 1}</td>
+                    <td><strong>${escapeHtml(st.rank)} /</strong><br>${escapeHtml(st.name)}</td>
+                    <td>${escapeHtml(st.role)}</td>
+                    <td style="text-align:center;">${st.s1}%</td>
+                    <td style="text-align:center;">${st.s2}%</td>
+                    <td style="text-align:center;">${st.s3}%</td>
+                    <td style="text-align:center;"><span class="score-pill">${avg}%</span></td>
+                    <td>${escapeHtml(st.reason)}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+          <div class="sec-heading" style="margin-top:16px;">
+            <div>منهجية احتساب درجات الانضباط والتميز بالأفراد</div>
+            <span>حوكمة التقييم</span>
+          </div>
+          <div class="kpi-row">
+            <div class="kpi-card">
+              <div class="num">40%</div>
+              <div class="lbl">الانضباط العسكري والقيافة والسلوك</div>
+            </div>
+            <div class="kpi-card">
+              <div class="num">30%</div>
+              <div class="lbl">إتقان الواجب الميداني وسرعة الإنجاز</div>
+            </div>
+            <div class="kpi-card">
+              <div class="num">20%</div>
+              <div class="lbl">تطبيق أنظمة (حسم، رقابة، بينة)</div>
+            </div>
+            <div class="kpi-card">
+              <div class="num">10%</div>
+              <div class="lbl">المبادرات الإنسانية والتواصل</div>
+            </div>
+          </div>
+        `);
+      }
+
+      // الصفحات التالية: ورش العمل والاجتماعات التثقيفية
+      if (state.showWorkshops && state.workshops.length > 0) {
+        state.workshops.forEach((w, idx) => {
+          pagesHtml.push(`
+            <div class="sec-heading">
+              <div>رابعاً: توثيق ورش العمل والاجتماعات التثقيفية (${idx + 1})</div>
+              <span>تثقيف وتوجيه الأفراد</span>
+            </div>
+            <table class="official-table">
+              <tbody>
+                <tr>
+                  <th style="width:24%">عنوان الورشة / الاجتماع</th>
+                  <td><strong>${escapeHtml(w.title)}</strong></td>
+                </tr>
+                <tr>
+                  <th>الموقع</th>
+                  <td>${escapeHtml(w.location)}</td>
+                </tr>
+                <tr>
+                  <th>المحاضر / المتحدث</th>
+                  <td>${escapeHtml(w.speaker)}</td>
+                </tr>
+                <tr>
+                  <th>الوقت والتاريخ</th>
+                  <td>${escapeHtml(w.datetime)}</td>
+                </tr>
+                <tr>
+                  <th>المستهدفون والحضور</th>
+                  <td>${escapeHtml(w.target)}</td>
+                </tr>
+                <tr>
+                  <th>المحاور والمخرجات</th>
+                  <td>${escapeHtml(w.outcomes)}</td>
+                </tr>
+              </tbody>
+            </table>
+            ${w.photos.length > 0 ? `
+              <div style="font-size:13px;font-weight:800;color:var(--primary-dark);margin:6px 0;">📸 التوثيق المصور لورشة العمل والاجتماع:</div>
+              <div class="photos-grid">
+                ${w.photos.map((p, pIdx) => `
+                  <div class="photo-frame">
+                    <img src="${p.src}" alt="صورة الاجتماع">
+                    <div class="caption">${escapeHtml(p.caption)}</div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : `
+              <div style="border:2px dashed #cbd5e1; border-radius:8px; padding:24px; text-align:center; color:#64748b; font-size:12.5px; margin-top:10px;">
+                يمكنك رفع صور الاجتماع من القائمة الجانبية (تبويب 5: الورش والاجتماعات) لتظهر هنا تلقائياً بتنسيق رسمي متناسق.
+              </div>
+            `}
+          `);
+        });
+      }
+
+      // صفحة: الميدان والندوات التوعوية
+      if (state.showField) {
+        let fieldHtml = `
+          <div class="sec-heading">
+            <div>خامساً: الانضباط الميداني وإدارة الطرق الجبلية والندوات التوعوية</div>
+            <span>هدفنا أمن وتواصل</span>
+          </div>
+          <div class="executive-box" style="margin-top:6px;">
+            <h3>🚓 الجاهزية والانضباط الميداني في محافظة العارضة</h3>
+            <p>${escapeHtml(state.fieldText)}</p>
+          </div>
+        `;
+        state.seminars.forEach((s, idx) => {
+          fieldHtml += `
+            <table class="official-table" style="margin-top:10px;">
+              <thead>
+                <tr>
+                  <th colspan="2">ندوة / مبادرة ميدانية: ${escapeHtml(s.title)} (${escapeHtml(s.date)})</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width:22%;font-weight:bold;">الأثر المتحقق:</td>
+                  <td>${escapeHtml(s.impact)}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:bold;">تفاصيل المبادرة:</td>
+                  <td>${escapeHtml(s.desc)}</td>
+                </tr>
+              </tbody>
+            </table>
+            ${s.photos.length > 0 ? `
+              <div class="photos-grid">
+                ${s.photos.map(p => `
+                  <div class="photo-frame">
+                    <img src="${p.src}" alt="شاهد ميداني">
+                    <div class="caption">${escapeHtml(p.caption)}</div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          `;
+        });
+        pagesHtml.push(fieldHtml);
+      }
+
+      // الصفحة الختامية: مؤشرات الأثر (قبل وبعد) + ميثاق الانضباط + الاعتماد الرسمي
+      if (state.showKpi) {
+        pagesHtml.push(`
+          <div class="sec-heading">
+            <div>سادساً: مؤشرات الأثر المتحقق (قبل وبعد التحول الرقمي وورش الانضباط)</div>
+            <span>لغة الأرقام والشواهد</span>
+          </div>
+          <table class="official-table">
+            <thead>
+              <tr>
+                <th>معيار القياس</th>
+                <th>قبل تطبيق المنظومات الرقمية والورش</th>
+                <th>بعد تفعيل (حسم، رقابة، بينة) وورش الانضباط</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>معالجة وتحليل الحوادث المرورية</strong></td>
+                <td>إجراءات ورقية تقليدية تستغرق وقتاً أطول</td>
+                <td>تحليل فوري وإسناد نظامي دقيق وإصدار PDF عبر «بينة»</td>
+              </tr>
+              <tr>
+                <td><strong>متابعة الانضباط والمهام والمركبات</strong></td>
+                <td>متابعة يدوية غير مؤتمتة</td>
+                <td>لوحة مؤشرات ورقابة لحظية شاملة عبر «رقابة»</td>
+              </tr>
+              <tr>
+                <td><strong>سرعة الحسم الإجرائي والالتزام</strong></td>
+                <td>تفاوت في سرعة إنجاز الإجراءات</td>
+                <td>حوكمة كاملة وسرعة إنجاز قياسية عبر «حسم»</td>
+              </tr>
+              <tr>
+                <td><strong>الوعي بمعايير جائزة مدير الأمن العام</strong></td>
+                <td>معرفة عامة غير موثقة بمؤشرات</td>
+                <td>استيعاب كامل بنسبة 100% وتقييم تحفيزي للأفراد</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="sec-heading">
+            <div>سابعاً: ميثاق الانضباط السلوكي والتوصيات الختامية</div>
+            <span>ختام التقرير والاعتماد</span>
+          </div>
+          <div class="executive-box">
+            <h3>📜 ميثاق الانضباط السلوكي لمنسوبي قسم مرور محافظة العارضة</h3>
+            <p>${escapeHtml(state.pledge)}</p>
+          </div>
+          <div class="executive-box" style="border-right-color:var(--primary);">
+            <h3>✅ التوصيات والمخرجات المستدامة</h3>
+            <p>${escapeHtml(state.recommendations).replace(/\n/g, '<br>')}</p>
+          </div>
+          <table class="official-table" style="margin-top:auto;">
+            <thead>
+              <tr>
+                <th style="text-align:center;width:50%;">إعداد وإشراف المبادرات الرقمية والتقرير</th>
+                <th style="text-align:center;width:50%;">اعتماد مدير قسم مرور محافظة العارضة</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align:center; padding:18px 10px;">
+                  <strong>${escapeHtml(state.author)}</strong><br><br>
+                  التوقيع: ........................................
+                </td>
+                <td style="text-align:center; padding:18px 10px;">
+                  <strong>${escapeHtml(state.manager)}</strong><br><br>
+                  التوقيع والختم: ........................................
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        `);
+      }
+
+      // تجميع الصفحات مع الترويسة والتذييل الرسمي
+      const total = pagesHtml.length;
+      const container = document.getElementById('report-preview-container');
+      container.innerHTML = pagesHtml.map((content, idx) => `
+        <section class="report-page">
+          <div class="page-inner">
+            ${buildPageHeader()}
+            ${content}
+          </div>
+          ${buildPageFooter(idx + 1, total)}
+        </section>
+      `).join('');
+    }
+
+    // تصدير واستيراد JSON
+    function exportDataJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute("href", dataStr);
+      a.setAttribute("download", "تقرير_مرور_العارضة_جائزة_مدير_الأمن_العام.json");
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    function importDataJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          state = JSON.parse(e.target.result);
+          saveState();
+          initApp();
+        } catch (err) {
+          alert("ملف غير صالح!");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetDefaultData() {
+      if (confirm("هل تريد استعادة البيانات الافتراضية لقسم مرور محافظة العارضة؟")) {
+        state = getDefaultState();
+        saveState();
+        initApp();
+      }
+    }
+
+    function initApp() {
+      populateStaticInputs();
+      renderAppsEditor();
+      renderStaffEditor();
+      renderWorkshopsEditor();
+      renderSeminarsEditor();
+      renderPreview();
+    }
+
+    window.onload = initApp;
+  </script>
+</body>
+</html>
