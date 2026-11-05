@@ -6,6 +6,7 @@ import base64
 import html
 import io
 import json
+import shutil
 import uuid
 from pathlib import Path
 
@@ -21,24 +22,43 @@ FONT_BOLD = ROOT / "fonts" / "NotoNaskhArabic-Bold.ttf"
 FONT_LATIN = ROOT / "fonts" / "NotoSans-Regular.ttf"
 FONT_LATIN_BOLD = ROOT / "fonts" / "NotoSans-Bold.ttf"
 
-SECTIONS = (
-    "الغلاف والبيانات",
-    "المحاور العشرة",
-    "التطبيقات الذكية",
-    "تقييم المتميزين",
-    "ورش العمل والاجتماعات",
-    "الميدان والندوات",
-    "الأثر والاعتماد",
-    "توليد التقرير",
-)
-
-DEFAULT_LOGO = "data:image/svg+xml;utf8," + (
+LOGO_FILE = ROOT / "traffic_logo.png"
+_FALLBACK_LOGO = "data:image/svg+xml;utf8," + (
     "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'%3E"
     "%3Ccircle cx='80' cy='80' r='74' fill='%230b4f26' stroke='%23c5a059' stroke-width='6'/%3E"
     "%3Ccircle cx='80' cy='80' r='64' fill='none' stroke='%23c5a059' stroke-width='2' stroke-dasharray='4,4'/%3E"
     "%3Ctext x='80' y='88' font-family='Tahoma,sans-serif' font-size='18' font-weight='bold' fill='%23ffffff' text-anchor='middle'%3Eالمرور%3C/text%3E"
     "%3C/svg%3E"
 )
+
+
+def load_permanent_traffic_logo() -> str:
+    """يحمّل شعار المرور من مجلد المشروع، وينسخه من hasm-ai إن غاب محلياً."""
+    search_paths = [
+        LOGO_FILE,
+        ROOT / "traffic_logo.png.png",
+        ROOT / "logo.png",
+        ROOT.parent / "hasm-ai" / "traffic_logo.png",
+        ROOT.parent / "hasm-ai" / "traffic_logo.png.png",
+        Path(r"C:\Users\Admin\Desktop\مشاريع\hasm-ai\traffic_logo.png"),
+        Path(r"C:\Users\Admin\Desktop\مشاريع\hasm-ai\traffic_logo.png.png"),
+    ]
+    for path in search_paths:
+        if not path.is_file():
+            continue
+        source = path
+        if path.resolve() != LOGO_FILE.resolve():
+            try:
+                shutil.copy(path, LOGO_FILE)
+                source = LOGO_FILE
+            except OSError:
+                source = path
+        encoded = base64.b64encode(source.read_bytes()).decode("ascii")
+        return f"data:image/png;base64,{encoded}"
+    return _FALLBACK_LOGO
+
+
+PERMANENT_LOGO = load_permanent_traffic_logo()
 
 APP_CSS = """
 <style>
@@ -76,6 +96,39 @@ input, textarea, [data-baseweb="select"] > div {
   text-align: right;
 }
 [data-testid="stAlert"], [data-testid="stExpander"] { direction: rtl; text-align: right; }
+.top-banner {
+  background: linear-gradient(135deg, #062b1f 0%, #0b4f38 100%);
+  border: 1px solid #d4af37;
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 18px;
+}
+.top-banner img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  background: #ffffff;
+  border-radius: 50%;
+  padding: 5px;
+  border: 2px solid #d4af37;
+  flex: 0 0 auto;
+}
+.top-banner h2 { color: #ffffff; margin: 4px 0; font-weight: 900; font-size: 1.35rem; }
+.top-banner .kicker { color: #d4af37; font-weight: 700; font-size: 0.9rem; }
+.top-banner .lede { color: #bfe3cc; font-size: 0.88rem; }
+.st-key-tm_sections [data-baseweb="tab-list"] {
+  gap: 4px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+}
+.st-key-tm_sections button[data-baseweb="tab"] {
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
 </style>
 """
 
@@ -122,6 +175,11 @@ MOBILE_CSS = """
   align-items: flex-start;
   width: 100%;
 }
+[data-testid="stAppViewContainer"]:has([data-testid="stExpandSidebarButton"]) section[data-testid="stSidebar"] {
+  transform: translateX(115%) !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
 @media (max-width: 768px) {
   [data-testid="stMainBlockContainer"], .main .block-container {
     padding: 4.5rem 0.85rem 2.4rem !important;
@@ -142,11 +200,6 @@ MOBILE_CSS = """
     min-width: 0 !important;
     max-width: min(88vw, 22rem) !important;
     z-index: 1000001;
-  }
-  [data-testid="stAppViewContainer"]:has([data-testid="stExpandSidebarButton"]) section[data-testid="stSidebar"] {
-    transform: translateX(115%) !important;
-    pointer-events: none !important;
-    visibility: hidden !important;
   }
   [data-testid="stExpandSidebarButton"] {
     position: fixed !important;
@@ -577,7 +630,22 @@ def clear_widget_keys() -> None:
 
 
 def logo_src(report: dict) -> str:
-    return report.get("logo") or DEFAULT_LOGO
+    return report.get("logo") or PERMANENT_LOGO
+
+
+def render_banner() -> None:
+    st.html(
+        f"""
+        <div class="top-banner">
+          <div>
+            <div class="kicker">المملكة العربية السعودية — وزارة الداخلية — الأمن العام</div>
+            <h2>منصة تميّز | قسم مرور محافظة العارضة</h2>
+            <div class="lede">توثيق ملف جائزة معالي مدير الأمن العام للانضباط السلوكي (هدفنا أمن وتواصل)</div>
+          </div>
+          <img src="{PERMANENT_LOGO}" alt="شعار المرور">
+        </div>
+        """
+    )
 
 
 def page_intro(title: str, lede: str) -> None:
@@ -640,6 +708,9 @@ def single_image_field(holder: dict, field: str, label: str, owner: str) -> None
 
 def render_cover(report: dict) -> None:
     page_intro("الغلاف والبيانات", "عنوان التقرير، التواريخ، الاعتماد، والملخص التنفيذي.")
+    st.caption("الشعار الرسمي يُعرض تلقائياً من traffic_logo.png. ارفع صورة فقط إذا أردت استبداله في هذا التقرير.")
+    if not report.get("logo") and LOGO_FILE.is_file():
+        st.image(str(LOGO_FILE), width=120, alt="شعار المرور الرسمي")
     single_image_field(report, "logo", "شعار الأمن العام / المرور", "logo")
     bind_text("عنوان التقرير الرئيسي", report, "title", "tm_title", area=True, height=90)
     bind_text("العنوان الفرعي", report, "subtitle", "tm_subtitle")
@@ -940,31 +1011,16 @@ def _print_button(document: str) -> None:
     )
 
 
-def render_section(section: str, report: dict) -> None:
-    {
-        SECTIONS[0]: render_cover,
-        SECTIONS[1]: render_axes,
-        SECTIONS[2]: render_apps,
-        SECTIONS[3]: render_staff,
-        SECTIONS[4]: render_workshops,
-        SECTIONS[5]: render_field,
-        SECTIONS[6]: render_kpi,
-        SECTIONS[7]: render_report_page,
-    }[section](report)
-
-
-def sidebar_nav(report: dict) -> str:
+def sidebar_nav(report: dict) -> None:
     with st.sidebar:
         st.html(
             """
             <div class="tm-brand">
               <h2>منصة تميّز</h2>
-              <p>تقارير جائزة معالي مدير الأمن العام للانضباط السلوكي — قسم مرور محافظة العارضة.</p>
+              <p>أقسام التحرير في التبويبات العلوية. من هنا تُظهر محاور التقرير وتحفظ الملف.</p>
             </div>
             """
         )
-        section = st.radio("أقسام المنصة", SECTIONS, key="tm_nav")
-        st.divider()
         st.markdown("**إظهار المحاور في التقرير**")
         bind_check("الحوكمة والقيم", report, "showGov", "tm_show_gov")
         bind_check("المحاور العشرة", report, "showAxes", "tm_show_axes")
@@ -973,7 +1029,36 @@ def sidebar_nav(report: dict) -> str:
         bind_check("ورش العمل", report, "showWorkshops", "tm_show_ws")
         bind_check("الميدان والندوات", report, "showField", "tm_show_field")
         bind_check("الأثر والاعتماد", report, "showKpi", "tm_show_kpi")
-    return section
+
+
+def render_workspace(report: dict) -> None:
+    labels = [
+        "📄 معاينة التقرير والطباعة",
+        "⚙️ بيانات الغلاف والاعتماد",
+        "💻 التطبيقات الذكية",
+        "🏅 التقييم وورش العمل",
+    ]
+    preview, cover, apps, evaluation = st.tabs(labels, key="tm_sections", on_change="rerun")
+    if preview.open:
+        with preview:
+            render_report_page(report)
+    if cover.open:
+        with cover:
+            render_cover(report)
+            st.divider()
+            render_kpi(report)
+    if apps.open:
+        with apps:
+            render_apps(report)
+    if evaluation.open:
+        with evaluation:
+            render_axes(report)
+            st.divider()
+            render_staff(report)
+            st.divider()
+            render_workshops(report)
+            st.divider()
+            render_field(report)
 
 
 def sidebar_tools(report: dict) -> None:
@@ -1504,10 +1589,10 @@ def _pdf_image(pdf: FPDF, src: str, width: float) -> None:
 
 def main() -> None:
     st.set_page_config(
-        page_title="منصة تميّز | مرور العارضة",
+        page_title="منصة تميّز | مرور محافظة العارضة",
         page_icon="🏅",
         layout="wide",
-        initial_sidebar_state="auto",
+        initial_sidebar_state="collapsed",
     )
     st.html(APP_CSS)
     st.markdown(MOBILE_CSS, unsafe_allow_html=True)
@@ -1524,8 +1609,9 @@ def main() -> None:
     ensure_report(report)
     if flash := st.session_state.pop("flash", None):
         st.success(flash)
-    section = sidebar_nav(report)
-    render_section(section, report)
+    render_banner()
+    sidebar_nav(report)
+    render_workspace(report)
     sidebar_tools(report)
 
 
