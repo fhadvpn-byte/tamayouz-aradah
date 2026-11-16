@@ -689,12 +689,11 @@ def load_data() -> dict:
 def _github_sync(content_str: str) -> None:
     try:
         secrets = st.secrets
+        token = str(secrets["GITHUB_TOKEN"]).strip() if "GITHUB_TOKEN" in secrets else ""
+        repo = str(secrets["GITHUB_REPO"]).strip() if "GITHUB_REPO" in secrets else ""
+        branch = str(secrets["GITHUB_BRANCH"]).strip() if "GITHUB_BRANCH" in secrets else ""
     except Exception:
         return
-    if "GITHUB_TOKEN" not in secrets or "GITHUB_REPO" not in secrets:
-        return
-    token = str(secrets["GITHUB_TOKEN"]).strip()
-    repo = str(secrets["GITHUB_REPO"]).strip()
     if not token or not repo:
         return
     url = f"https://api.github.com/repos/{repo}/contents/{DB_FILE.name}"
@@ -711,8 +710,8 @@ def _github_sync(content_str: str) -> None:
         }
         if sha:
             payload["sha"] = sha
-        if "GITHUB_BRANCH" in secrets and secrets["GITHUB_BRANCH"]:
-            payload["branch"] = str(secrets["GITHUB_BRANCH"]).strip()
+        if branch:
+            payload["branch"] = branch
         requests.put(url, headers=headers, json=payload, timeout=30)
     except Exception:
         return
