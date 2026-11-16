@@ -1412,20 +1412,22 @@ def _html_pages(report: dict) -> list[str]:
         )
     if report.get("showAxes"):
         visible = [axis for axis in report["axes"] if axis.get("enabled", True)]
-        for chunk in _chunks(visible, 2):
-            cards = []
-            for axis in chunk:
-                cards.append(
-                    f"""
-                    <article class="keep">
-                      <div class="sec-heading"><div>{esc(axis.get("name"))}</div><span>{esc(axis.get("motto"))}</span></div>
-                      <p class="body">{esc(axis.get("text"))}</p>
-                      <p class="indicator">مؤشر القياس: {esc(axis.get("indicator"))}</p>
-                      {_photos_html(axis.get("photos") or [])}
-                    </article>
-                    """
-                )
-            pages.append("".join(cards))
+        if visible:
+            cards = [
+                f"""
+                <article class="keep axis-block">
+                  <div class="sec-heading"><div>{esc(axis.get("name"))}</div><span>{esc(axis.get("motto"))}</span></div>
+                  <p class="body">{esc(axis.get("text"))}</p>
+                  <p class="indicator">مؤشر القياس: {esc(axis.get("indicator"))}</p>
+                  {_photos_html(axis.get("photos") or [])}
+                </article>
+                """
+                for axis in visible
+            ]
+            pages.append(
+                '<div class="sec-heading"><div>المحاور العشرة للانضباط السلوكي</div><span>تطبيقات القسم</span></div>'
+                + "".join(cards)
+            )
     if report.get("showApps") and report["apps"]:
         for chunk in _chunks(report["apps"], 3):
             cards = []
@@ -1683,7 +1685,7 @@ _HTML_SHELL = """<!DOCTYPE html>
       font-family:"Cairo",Tahoma,sans-serif; white-space:nowrap;
     }
     @media print {
-      @page { size:A4 portrait; margin:0; }
+      @page { size:A4 portrait; margin:10mm 8mm 12mm; }
       html, body {
         background:#fff !important; margin:0 !important; padding:0 !important;
         -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important;
@@ -1691,10 +1693,30 @@ _HTML_SHELL = """<!DOCTYPE html>
       * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
       .print-bar { display:none !important; }
       .report-page {
-        width:210mm; min-height:297mm; margin:0; box-shadow:none;
-        page-break-after:always; break-after:page;
+        width:auto; min-height:0 !important; height:auto !important; margin:0; padding:0;
+        box-shadow:none; display:block; justify-content:flex-start;
+        page-break-after:auto; break-after:auto;
+        page-break-inside:auto; break-inside:auto;
       }
-      .report-page:last-child { page-break-after:auto; break-after:auto; }
+      .report-page::before, .report-page::after { display:none !important; }
+      .page-inner { overflow:visible; }
+      .cover, .cover .title-frame, .cover .badge {
+        break-inside:avoid; page-break-inside:avoid;
+      }
+      .cover .title-frame {
+        margin-top:2mm;
+        box-decoration-break:clone; -webkit-box-decoration-break:clone;
+      }
+      .sec-heading {
+        break-inside:avoid; page-break-inside:avoid;
+        break-after:avoid; page-break-after:avoid;
+      }
+      .keep, .axis-block, .app-report-card, .photo, .note, .kpi-row, .signs {
+        break-inside:avoid !important; page-break-inside:avoid !important;
+      }
+      .page-footer {
+        margin-top:6mm; break-inside:avoid; page-break-inside:avoid;
+      }
     }
   </style>
 </head>
