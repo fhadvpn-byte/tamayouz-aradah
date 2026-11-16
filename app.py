@@ -7,10 +7,12 @@ import html
 import io
 import json
 import shutil
+import sqlite3
 import uuid
 from pathlib import Path
 
 import arabic_reshaper
+import requests
 import streamlit as st
 from bidi.algorithm import get_display
 from fpdf import FPDF
@@ -23,6 +25,10 @@ FONT_LATIN = ROOT / "fonts" / "NotoSans-Regular.ttf"
 FONT_LATIN_BOLD = ROOT / "fonts" / "NotoSans-Bold.ttf"
 
 LOGO_FILE = ROOT / "traffic_logo.png"
+SETTINGS_DB = ROOT / "app_settings.db"
+DB_FILE = ROOT / "permanent_tamayouz_db.json"
+LEGACY_DATA_FILE = ROOT / "permanent_data.json"
+IMAGES_DIR = ROOT / "saved_uploads"
 _FALLBACK_LOGO = "data:image/svg+xml;utf8," + (
     "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'%3E"
     "%3Ccircle cx='80' cy='80' r='74' fill='%230b4f26' stroke='%23c5a059' stroke-width='6'/%3E"
@@ -226,6 +232,97 @@ def _photo(caption: str = "") -> dict:
     return {"uid": _uid("pic"), "src": "", "caption": caption}
 
 
+def _settings_conn() -> sqlite3.Connection:
+    conn = sqlite3.connect(SETTINGS_DB, timeout=30)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def init_app_settings() -> None:
+    """جدول هوية التطبيقات: الاسم، الرابط، الوصف، والصورة (Base64)."""
+    with _settings_conn() as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS app_settings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                app_name TEXT,
+                app_link TEXT,
+                app_description TEXT,
+                app_image TEXT,
+                impact TEXT DEFAULT '',
+                qr TEXT DEFAULT '',
+                uid TEXT UNIQUE,
+                updated_at TEXT DEFAULT (datetime('now', 'localtime'))
+            )
+            """
+        )
+
+
+def _app_from_row(row: sqlite3.Row) -> dict:
+    return {
+        "uid": row["uid"] or f"app-{row['id']}",
+        "db_id": row["id"],
+        "name": row["app_name"] or "",
+        "impact": row["impact"] or "",
+        "desc": row["app_description"] or "",
+        "link": row["app_link"] or "",
+        "screenshot": row["app_image"] or "",
+        "qr": row["qr"] or "",
+    }
+
+
+def load_apps() -> list[dict]:
+    init_app_settings()
+    with _settings_conn() as conn:
+        rows = conn.execute("SELECT * FROM app_settings ORDER BY id").fetchall()
+    if not rows:
+        apps = default_report()["apps"]
+        save_apps(apps)
+        return apps
+    return [_app_from_row(row) for row in rows]
+
+
+def save_apps(apps: list[dict]) -> None:
+    init_app_settings()
+    keep: list[str] = []
+    with _settings_conn() as conn:
+        for app in apps:
+            if not isinstance(app, dict):
+                continue
+            uid = str(app.get("uid") or _uid("app"))
+            app["uid"] = uid
+            conn.execute(
+                """
+                INSERT INTO app_settings (
+                    app_name, app_link, app_description, app_image, impact, qr, uid, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
+                ON CONFLICT(uid) DO UPDATE SET
+                    app_name = excluded.app_name,
+                    app_link = excluded.app_link,
+                    app_description = excluded.app_description,
+                    app_image = excluded.app_image,
+                    impact = excluded.impact,
+                    qr = excluded.qr,
+                    updated_at = datetime('now', 'localtime')
+                """,
+                (
+                    str(app.get("name") or "").strip(),
+                    str(app.get("link") or "").strip(),
+                    str(app.get("desc") or "").strip(),
+                    app.get("screenshot") or "",
+                    str(app.get("impact") or "").strip(),
+                    app.get("qr") or "",
+                    uid,
+                ),
+            )
+            keep.append(uid)
+        if keep:
+            marks = ",".join("?" * len(keep))
+            conn.execute(f"DELETE FROM app_settings WHERE uid NOT IN ({marks})", keep)
+        else:
+            conn.execute("DELETE FROM app_settings")
+
+
 def default_report() -> dict:
     return {
         "logo": "",
@@ -360,6 +457,7 @@ def default_report() -> dict:
                 "name": "منظومة «حسم» (HASM)",
                 "impact": "حوكمة الإجراءات وسرعة الإنجاز والانضباط",
                 "desc": "تطبيق ذكي يعزز سرعة الحسم الإجرائي في المعاملات والوقائع المرورية، ويمنع التأخير، ويجسّد الوفاء بالالتزام وإتقان الواجب.",
+                "link": "",
                 "screenshot": "",
                 "qr": "",
             },
@@ -368,6 +466,7 @@ def default_report() -> dict:
                 "name": "منظومة «رقابة» (RAQABAH)",
                 "impact": "الرقابة الذاتية والميدانية ومتابعة الانضباط",
                 "desc": "نظام للمتابعة الإدارية والميدانية وحركة المركبات المحجوزة ومؤشرات الأداء، يضمن الانضباط السلوكي والالتزام بالتعليمات.",
+                "link": "",
                 "screenshot": "",
                 "qr": "",
             },
@@ -376,6 +475,7 @@ def default_report() -> dict:
                 "name": "منظومة «بينة» (BAYYINAH)",
                 "impact": "العدالة والحياد في تحليل الحوادث",
                 "desc": "منظومة لتحليل وصف الحوادث وإسنادها إلى مواد نظام المرور لتحديد نسب المسؤولية وإصدار تقارير PDF رسمية بنزاهة وشفافية.",
+                "link": "",
                 "screenshot": "",
                 "qr": "",
             },
@@ -504,6 +604,7 @@ def ensure_report(report: dict) -> None:
         app.setdefault("name", "")
         app.setdefault("impact", "")
         app.setdefault("desc", "")
+        app.setdefault("link", "")
         app.setdefault("screenshot", "")
         app.setdefault("qr", "")
     for index, person in enumerate(report["staffList"]):
@@ -566,15 +667,92 @@ def shape(value: object) -> str:
     return "\n".join(lines)
 
 
-def file_to_data_url(uploaded) -> str:
-    raw = uploaded.getvalue()
-    mime = (getattr(uploaded, "type", "") or "").lower()
+def _read_json_file(path: Path) -> dict:
+    if not path.is_file():
+        return {}
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return loaded if isinstance(loaded, dict) else {}
+
+
+def load_permanent_db() -> dict:
+    loaded = _read_json_file(DB_FILE) or _read_json_file(LEGACY_DATA_FILE)
+    return normalize(loaded) if loaded else {}
+
+
+def load_data() -> dict:
+    return load_permanent_db()
+
+
+def _github_sync(content_str: str) -> None:
+    try:
+        secrets = st.secrets
+    except Exception:
+        return
+    if "GITHUB_TOKEN" not in secrets or "GITHUB_REPO" not in secrets:
+        return
+    token = str(secrets["GITHUB_TOKEN"]).strip()
+    repo = str(secrets["GITHUB_REPO"]).strip()
+    if not token or not repo:
+        return
+    url = f"https://api.github.com/repos/{repo}/contents/{DB_FILE.name}"
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github+json",
+    }
+    try:
+        current = requests.get(url, headers=headers, timeout=20)
+        sha = current.json().get("sha") if current.status_code == 200 else None
+        payload = {
+            "message": "Auto-save Tamayuz report data and images",
+            "content": base64.b64encode(content_str.encode("utf-8")).decode("ascii"),
+        }
+        if sha:
+            payload["sha"] = sha
+        if "GITHUB_BRANCH" in secrets and secrets["GITHUB_BRANCH"]:
+            payload["branch"] = str(secrets["GITHUB_BRANCH"]).strip()
+        requests.put(url, headers=headers, json=payload, timeout=30)
+    except Exception:
+        return
+
+
+def save_permanent_db(data: dict) -> None:
+    content_str = json.dumps(data, ensure_ascii=False, indent=2)
+    DB_FILE.write_text(content_str, encoding="utf-8")
+    _github_sync(content_str)
+
+
+def save_data(data: dict) -> None:
+    save_permanent_db(data)
+
+
+def persist_report() -> None:
+    report = st.session_state.get("report")
+    if not isinstance(report, dict):
+        return
+    save_permanent_db(report)
+    if isinstance(report.get("apps"), list):
+        save_apps(report["apps"])
+
+
+def commit_and_rerun() -> None:
+    persist_report()
+    st.rerun()
+
+
+def image_to_base64(uploaded_file) -> str | None:
+    """تحويل أي صورة مرفوعة إلى نص Base64 دائم داخل ملف قاعدة البيانات."""
+    if uploaded_file is None:
+        return None
+    raw = uploaded_file.getvalue()
+    mime = (getattr(uploaded_file, "type", "") or "").lower()
     if "svg" in mime:
         encoded = base64.b64encode(raw).decode("ascii")
         return f"data:image/svg+xml;base64,{encoded}"
     try:
-        image = Image.open(io.BytesIO(raw))
-        image = image.convert("RGB")
+        image = Image.open(io.BytesIO(raw)).convert("RGB")
         image.thumbnail((1400, 1400))
         buffer = io.BytesIO()
         image.save(buffer, format="JPEG", quality=82)
@@ -582,7 +760,71 @@ def file_to_data_url(uploaded) -> str:
         return "data:image/jpeg;base64," + encoded
     except OSError:
         encoded = base64.b64encode(raw).decode("ascii")
-        return f"data:{mime or 'image/jpeg'};base64,{encoded}"
+        return f"data:{mime or 'image/png'};base64,{encoded}"
+
+
+def store_upload(uploaded) -> str:
+    """يحفظ الصورة كـ Base64 داخل JSON، ونسخة ملف محلية احتياطية."""
+    data_url = image_to_base64(uploaded)
+    if not data_url:
+        return ""
+    try:
+        IMAGES_DIR.mkdir(exist_ok=True)
+        payload = data_url_bytes(data_url)
+        suffix = ".jpg"
+        if "image/png" in data_url[:40]:
+            suffix = ".png"
+        elif "image/webp" in data_url[:40]:
+            suffix = ".webp"
+        elif "svg" in data_url[:40]:
+            suffix = ".svg"
+        (IMAGES_DIR / f"{uuid.uuid4().hex}{suffix}").write_bytes(payload)
+    except OSError:
+        pass
+    return data_url
+
+
+def resolve_image(src: str) -> Path | None:
+    if not src or src.startswith("data:"):
+        return None
+    path = Path(src)
+    if not path.is_absolute():
+        path = ROOT / path
+    return path if path.is_file() else None
+
+
+def image_bytes(src: str) -> bytes | None:
+    if src.startswith("data:image/"):
+        try:
+            return data_url_bytes(src)
+        except (ValueError, IndexError):
+            return None
+    path = resolve_image(src)
+    if path is not None:
+        try:
+            return path.read_bytes()
+        except OSError:
+            return None
+    return None
+
+
+def embed_src(src: str) -> str:
+    if not src:
+        return ""
+    if src.startswith("data:"):
+        return src
+    path = resolve_image(src)
+    if path is None:
+        return src
+    mime = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+        ".svg": "image/svg+xml",
+    }.get(path.suffix.lower(), "image/jpeg")
+    encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+    return f"data:{mime};base64,{encoded}"
 
 
 def data_url_bytes(src: str) -> bytes:
@@ -591,10 +833,15 @@ def data_url_bytes(src: str) -> bytes:
 
 
 def is_raster(src: str) -> bool:
-    if not src or not src.startswith("data:image/"):
+    if not src:
         return False
-    header = src.split(",", 1)[0]
-    return "svg" not in header
+    if src.startswith("data:image/"):
+        header = src.split(",", 1)[0]
+        return "svg" not in header
+    path = resolve_image(src)
+    if path is not None:
+        return path.suffix.lower() != ".svg"
+    return False
 
 
 def bind_text(label: str, holder: dict, field: str, key: str, area: bool = False, **kwargs):
@@ -630,7 +877,7 @@ def clear_widget_keys() -> None:
 
 
 def logo_src(report: dict) -> str:
-    return report.get("logo") or PERMANENT_LOGO
+    return embed_src(report.get("logo") or "") or PERMANENT_LOGO
 
 
 def render_banner() -> None:
@@ -669,8 +916,8 @@ def photo_editor(photos: list, owner: str) -> None:
             st.warning("اختر صورة واحدة على الأقل.")
         else:
             for item in uploads:
-                photos.append({"uid": _uid("pic"), "src": file_to_data_url(item), "caption": caption or "شاهد — قسم مرور محافظة العارضة"})
-            st.rerun()
+                photos.append({"uid": _uid("pic"), "src": store_upload(item), "caption": caption or "شاهد — قسم مرور محافظة العارضة"})
+            commit_and_rerun()
     if not photos:
         st.caption("لا توجد صور مرفقة بعد.")
         return
@@ -678,13 +925,14 @@ def photo_editor(photos: list, owner: str) -> None:
         with st.container(border=True):
             left, right = st.columns([1, 3], vertical_alignment="center")
             with left:
-                if photo.get("src"):
-                    st.image(data_url_bytes(photo["src"]), width=150, alt=photo.get("caption") or "صورة مرفقة")
+                shown = image_bytes(photo.get("src") or "")
+                if shown:
+                    st.image(shown, width=150, alt=photo.get("caption") or "صورة مرفقة")
             with right:
                 bind_text("التعليق", photo, "caption", f"tm_cap_{photo['uid']}")
                 if st.button("حذف الصورة", key=f"tm_delpic_{photo['uid']}", icon=":material/delete:"):
                     photos.remove(photo)
-                    st.rerun()
+                    commit_and_rerun()
 
 
 def single_image_field(holder: dict, field: str, label: str, owner: str) -> None:
@@ -696,14 +944,19 @@ def single_image_field(holder: dict, field: str, label: str, owner: str) -> None
         key=f"tm_file_{owner}_{field}_{holder[nonce_field]}",
     )
     if uploaded is not None:
-        holder[field] = file_to_data_url(uploaded)
+        token = f"{uploaded.name}:{getattr(uploaded, 'size', 0)}"
+        token_key = f"tm_tok_{owner}_{field}"
+        if st.session_state.get(token_key) != token:
+            holder[field] = store_upload(uploaded)
+            st.session_state[token_key] = token
     current = holder.get(field) or ""
-    if current and is_raster(current):
-        st.image(data_url_bytes(current), width=180, alt=label)
+    shown = image_bytes(current)
+    if shown and is_raster(current):
+        st.image(shown, width=180, alt=label)
     if current and st.button("إزالة الصورة", key=f"tm_clr_{owner}_{field}"):
         holder[field] = ""
         holder[nonce_field] = int(holder.get(nonce_field) or 0) + 1
-        st.rerun()
+        commit_and_rerun()
 
 
 def render_cover(report: dict) -> None:
@@ -785,18 +1038,21 @@ def render_apps(report: dict) -> None:
                 "name": "تطبيق رقمي جديد",
                 "impact": "تعزيز الانضباط وجودة الأداء",
                 "desc": "وصف المبادرة وأثرها على العمل المروري في القسم.",
+                "link": "",
                 "screenshot": "",
                 "qr": "",
             }
         )
-        st.rerun()
+        commit_and_rerun()
     if not report["apps"]:
+        save_apps(report["apps"])
         st.info("أضف تطبيقاً ليظهر في محور التحول الرقمي.", title="لا توجد تطبيقات")
         return
     for app in list(report["apps"]):
         with st.container(border=True):
             st.subheader(app.get("name") or "تطبيق")
             bind_text("اسم التطبيق", app, "name", f"tm_app_name_{app['uid']}")
+            bind_text("رابط التطبيق", app, "link", f"tm_app_link_{app['uid']}")
             bind_text("الارتباط بمعيار الجائزة", app, "impact", f"tm_app_impact_{app['uid']}")
             bind_text("الوصف", app, "desc", f"tm_app_desc_{app['uid']}", area=True, height=110)
             left, right = st.columns(2)
@@ -806,7 +1062,9 @@ def render_apps(report: dict) -> None:
                 single_image_field(app, "qr", "رمز QR", app["uid"] + "q")
             if st.button("حذف التطبيق", key=f"tm_del_app_{app['uid']}", icon=":material/delete:"):
                 report["apps"].remove(app)
-                st.rerun()
+                save_apps(report["apps"])
+                commit_and_rerun()
+    save_apps(report["apps"])
 
 
 def render_staff(report: dict) -> None:
@@ -825,7 +1083,7 @@ def render_staff(report: dict) -> None:
                 "reason": "الالتزام بالقيافة وسرعة إنجاز المهام الميدانية.",
             }
         )
-        st.rerun()
+        commit_and_rerun()
     for person in list(report["staffList"]):
         with st.container(border=True):
             st.subheader(person.get("name") or "مرشح")
@@ -847,7 +1105,7 @@ def render_staff(report: dict) -> None:
             bind_text("مبررات التميز", person, "reason", f"tm_st_reason_{person['uid']}", area=True, height=90)
             if st.button("حذف المرشح", key=f"tm_del_st_{person['uid']}", icon=":material/delete:"):
                 report["staffList"].remove(person)
-                st.rerun()
+                commit_and_rerun()
 
 
 def render_workshops(report: dict) -> None:
@@ -865,7 +1123,7 @@ def render_workshops(report: dict) -> None:
                 "photos": [],
             }
         )
-        st.rerun()
+        commit_and_rerun()
     for item in list(report["workshops"]):
         with st.container(border=True):
             bind_text("العنوان", item, "title", f"tm_ws_title_{item['uid']}")
@@ -880,7 +1138,7 @@ def render_workshops(report: dict) -> None:
             photo_editor(item["photos"], item["uid"])
             if st.button("حذف الورشة", key=f"tm_del_ws_{item['uid']}", icon=":material/delete:"):
                 report["workshops"].remove(item)
-                st.rerun()
+                commit_and_rerun()
 
 
 def render_field(report: dict) -> None:
@@ -897,7 +1155,7 @@ def render_field(report: dict) -> None:
                 "photos": [],
             }
         )
-        st.rerun()
+        commit_and_rerun()
     for item in list(report["seminars"]):
         with st.container(border=True):
             bind_text("العنوان", item, "title", f"tm_sem_title_{item['uid']}")
@@ -910,7 +1168,7 @@ def render_field(report: dict) -> None:
             photo_editor(item["photos"], item["uid"])
             if st.button("حذف الندوة", key=f"tm_del_sem_{item['uid']}", icon=":material/delete:"):
                 report["seminars"].remove(item)
-                st.rerun()
+                commit_and_rerun()
 
 
 def render_kpi(report: dict) -> None:
@@ -971,7 +1229,7 @@ def render_report_page(report: dict) -> None:
                 st.session_state["flash"] = "تم توليد ملف PDF."
             except Exception as exc:
                 st.session_state["tm_pdf_error"] = str(exc)
-            st.rerun()
+            commit_and_rerun()
     if st.session_state.get("tm_pdf_error"):
         st.error(st.session_state.pop("tm_pdf_error"), title="تعذر إنشاء PDF")
     if st.session_state.get("tm_pdf_bytes"):
@@ -983,7 +1241,7 @@ def render_report_page(report: dict) -> None:
             icon=":material/download:",
         )
     _print_button(document)
-    st.caption("في نافذة الطباعة اختر حفظ كـ PDF وفعّل طباعة الخلفيات حتى تظهر الألوان الرسمية.")
+    st.caption("في نافذة الطباعة اختر حفظ كملف PDF وفعّل Background graphics حتى تطابق الألوان والشعار المعاينة.")
     st.iframe(document, height=980, alt="معاينة تقرير تميز بمقاس A4")
 
 
@@ -1077,14 +1335,15 @@ def sidebar_tools(report: dict) -> None:
         if st.button("اعتماد الملف", icon=":material/folder_open:", width="stretch") and uploaded is not None:
             try:
                 st.session_state["pending_import"] = json.loads(uploaded.getvalue().decode("utf-8"))
+                st.session_state["_apps_from_import"] = True
                 st.session_state["flash"] = "تم فتح ملف التقرير."
-                st.rerun()
+                commit_and_rerun()
             except (UnicodeDecodeError, json.JSONDecodeError):
                 st.error("الملف غير صالح.")
         if st.button("استعادة الافتراضي", icon=":material/restart_alt:", width="stretch"):
             st.session_state["pending_reset"] = True
-            st.rerun()
-        st.caption("احفظ JSON قبل إغلاق الصفحة. جلسة المتصفح لا تُبقي الصور بعد التحديث.")
+            commit_and_rerun()
+        st.caption("كل تعديل يُحفظ في permanent_tamayouz_db.json مع الصور كـ Base64. أضف GITHUB_TOKEN وGITHUB_REPO في Secrets للمزامنة السحابية.")
         st.caption("هدفنا أمن وتواصل")
 
 
@@ -1174,9 +1433,9 @@ def _html_pages(report: dict) -> list[str]:
             for app in chunk:
                 media = ""
                 if app.get("screenshot"):
-                    media += f'<img src="{app["screenshot"]}" class="app-shot" alt="واجهة التطبيق">'
+                    media += f'<img src="{embed_src(app["screenshot"])}" class="app-shot" alt="واجهة التطبيق">'
                 if app.get("qr"):
-                    media += f'<img src="{app["qr"]}" class="app-qr" alt="رمز QR">'
+                    media += f'<img src="{embed_src(app["qr"])}" class="app-qr" alt="رمز QR">'
                 cards.append(
                     f"""
                     <div class="app-report-card keep">
@@ -1184,6 +1443,7 @@ def _html_pages(report: dict) -> list[str]:
                         <h4>{esc(app.get("name"))}</h4>
                         <span class="badge">{esc(app.get("impact"))}</span>
                         <p>{esc(app.get("desc"))}</p>
+                        {f'<p><a href="{html.escape(str(app.get("link") or ""), quote=True)}">{esc(app.get("link"))}</a></p>' if app.get("link") else ""}
                       </div>
                       <div class="app-media">{media}</div>
                     </div>
@@ -1311,7 +1571,7 @@ def _photos_html(photos: list) -> str:
         frames.append(
             f"""
             <figure class="photo">
-              <img src="{photo['src']}" alt="{esc(photo.get('caption') or 'شاهد')}">
+              <img src="{embed_src(photo['src'])}" alt="{esc(photo.get('caption') or 'شاهد')}">
               <figcaption>{esc(photo.get('caption'))}</figcaption>
             </figure>
             """
@@ -1412,14 +1672,38 @@ _HTML_SHELL = """<!DOCTYPE html>
     .sign { text-align:center; padding:16px 8px; }
     .page-footer { border-top:2px solid var(--gold); margin-top:12px; padding-top:6px; display:flex; justify-content:space-between; font-size:11px; font-weight:700; color:#475569; position:relative; z-index:2; }
     .keep { break-inside:avoid; page-break-inside:avoid; }
+    .print-bar {
+      max-width:210mm; margin:15px auto; display:flex; justify-content:space-between;
+      align-items:center; gap:12px; background:#062b1f; color:#fff; padding:12px 20px;
+      border-radius:10px; border:1px solid #d4af37;
+    }
+    .print-bar span { font-size:13px; font-weight:700; line-height:1.6; }
+    .print-btn {
+      background:linear-gradient(135deg,#d4af37,#b5891c); color:#062b1f; border:none;
+      padding:10px 24px; font-size:15px; font-weight:800; border-radius:8px; cursor:pointer;
+      font-family:"Cairo",Tahoma,sans-serif; white-space:nowrap;
+    }
     @media print {
       @page { size:A4 portrait; margin:0; }
-      body { background:#fff; }
-      .report-page { margin:0; box-shadow:none; }
+      html, body {
+        background:#fff !important; margin:0 !important; padding:0 !important;
+        -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important;
+      }
+      * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+      .print-bar { display:none !important; }
+      .report-page {
+        width:210mm; min-height:297mm; margin:0; box-shadow:none;
+        page-break-after:always; break-after:page;
+      }
+      .report-page:last-child { page-break-after:auto; break-after:auto; }
     }
   </style>
 </head>
 <body>
+  <div class="print-bar">
+    <span>لطباعة مطابقة للمعاينة: اضغط الزر ثم اختر «حفظ كملف PDF» وفعّل خيار Background graphics.</span>
+    <button class="print-btn" type="button" onclick="window.print()">طباعة / حفظ PDF</button>
+  </div>
 <!--BODY-->
 </body>
 </html>
@@ -1493,6 +1777,8 @@ def build_report_pdf(report: dict) -> bytes:
             _pdf_heading(pdf, app.get("name") or "تطبيق")
             _pdf_paragraph(pdf, app.get("impact") or "")
             _pdf_paragraph(pdf, app.get("desc") or "")
+            if app.get("link"):
+                _pdf_paragraph(pdf, f"الرابط: {app.get('link')}")
             for field in ("screenshot", "qr"):
                 _pdf_image(pdf, app.get(field) or "", 42 if field == "qr" else 70)
     if report.get("showStaff"):
@@ -1576,7 +1862,7 @@ def _pdf_image(pdf: FPDF, src: str, width: float) -> None:
     if pdf.get_y() > 230:
         pdf.add_page()
     try:
-        image = Image.open(io.BytesIO(data_url_bytes(src))).convert("RGB")
+        image = Image.open(io.BytesIO(image_bytes(src) or b"")).convert("RGB")
         image.thumbnail((1000, 1000))
         buffer = io.BytesIO()
         image.save(buffer, format="JPEG", quality=80)
@@ -1597,22 +1883,36 @@ def main() -> None:
     st.html(APP_CSS)
     st.markdown(MOBILE_CSS, unsafe_allow_html=True)
     if "report" not in st.session_state:
-        st.session_state.report = default_report()
+        stored = load_data()
+        if stored:
+            if not stored.get("apps"):
+                stored["apps"] = load_apps()
+            st.session_state.report = stored
+        else:
+            report = default_report()
+            report["apps"] = load_apps()
+            st.session_state.report = report
     if "pending_import" in st.session_state:
         st.session_state.report = normalize(st.session_state.pop("pending_import"))
         clear_widget_keys()
     if st.session_state.pop("pending_reset", False):
-        st.session_state.report = default_report()
+        fresh = default_report()
+        save_apps(fresh["apps"])
+        st.session_state.report = fresh
         clear_widget_keys()
         st.session_state["flash"] = "تمت استعادة البيانات الافتراضية."
     report = st.session_state.report
     ensure_report(report)
+    if st.session_state.get("_apps_from_import"):
+        save_apps(report["apps"])
+        st.session_state["_apps_from_import"] = False
     if flash := st.session_state.pop("flash", None):
         st.success(flash)
     render_banner()
     sidebar_nav(report)
     render_workspace(report)
     sidebar_tools(report)
+    persist_report()
 
 
 if __name__ == "__main__":
