@@ -1662,11 +1662,11 @@ _HTML_SHELL = """<!DOCTYPE html>
     .app-report-card h4 { margin:0 0 4px; color:var(--deep); }
     .badge { background:var(--cream); color:var(--deep); border-radius:4px; padding:2px 6px; font-size:11px; font-weight:700; }
     .app-media { display:flex; gap:6px; align-items:center; }
-    .app-shot { width:95px; height:70px; object-fit:cover; border:1px solid var(--gold); border-radius:6px; }
+    .app-shot { width:95px; height:70px; object-fit: contain; background:#f8faf9; border:1px solid var(--gold); border-radius:6px; }
     .app-qr { width:64px; height:64px; object-fit:contain; border:1px solid #cbd5e1; }
     .photos { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:8px 0; }
     .photo { margin:0; border:1px solid var(--gold); border-radius:6px; overflow:hidden; break-inside:avoid; }
-    .photo img { width:100%; height:145px; object-fit:cover; display:block; }
+    .photo img { width:100%; height:145px; object-fit: contain; background:#f8faf9; display:block; }
     .photo figcaption { background:var(--cream); text-align:center; font-size:11px; font-weight:700; padding:4px 6px; }
     .sign { text-align:center; padding:16px 8px; }
     .page-footer { border-top:2px solid var(--gold); margin-top:12px; padding-top:6px; display:flex; justify-content:space-between; font-size:11px; font-weight:700; color:#475569; position:relative; z-index:2; }
