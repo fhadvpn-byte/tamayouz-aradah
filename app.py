@@ -1356,10 +1356,8 @@ def build_report_html(report: dict) -> str:
         body.append(
             f"""
             <section class="report-page">
-              <div class="page-inner">
-                {_html_header(report)}
-                {content}
-              </div>
+              {_html_header(report)}
+              <div class="page-inner">{content}</div>
               {_html_footer(index, total)}
             </section>
             """
@@ -1395,13 +1393,126 @@ def _html_footer(page: int, total: int) -> str:
     """
 
 
+PAGE_BODY_MM = 205.0
+SECTION_HEADING_MM = 14.0
+MERGE_REMAINING_MM = 65.0
+
+
+def _photo_count(photos: list | None) -> int:
+    return len([photo for photo in (photos or []) if isinstance(photo, dict) and photo.get("src")])
+
+
+def _photo_block_mm(count: int) -> float:
+    if count <= 0:
+        return 0.0
+    rows = (count + 1) // 2
+    if rows <= 1:
+        return 60.0
+    return 60.0 + 55.0 * (rows - 1)
+
+
+def _text_card_mm(text: object, photos: list | None = None) -> float:
+    length = len(str(text or "").strip())
+    if length > 220:
+        base = 38.0
+    elif length > 120:
+        base = 34.0
+    else:
+        base = 30.0
+    return base + _photo_block_mm(_photo_count(photos))
+
+
+def _note_mm(text: object) -> float:
+    length = len(str(text or "").strip())
+    if length > 280:
+        return 42.0
+    if length > 140:
+        return 34.0
+    return 28.0
+
+
+def _table_mm(rows: int, row_mm: float = 10.0, header_mm: float = 12.0) -> float:
+    return header_mm + max(rows, 1) * row_mm + 4.0
+
+
+def _block(html: str, height: float, kind: str = "content") -> dict:
+    return {"html": html, "height": float(height), "kind": kind}
+
+
+def _heading_block(title: str, badge: str) -> dict:
+    return _block(
+        f'<div class="sec-heading"><div>{esc(title)}</div><span>{esc(badge)}</span></div>',
+        SECTION_HEADING_MM,
+        "heading",
+    )
+
+
+def _needed_height(blocks: list[dict], index: int) -> float:
+    block = blocks[index]
+    if block["kind"] == "heading" and index + 1 < len(blocks):
+        return block["height"] + blocks[index + 1]["height"]
+    return block["height"]
+
+
+def _pack_smart_pages(blocks: list[dict]) -> list[str]:
+    """تعبئة الصفحات حسب الارتفاع التقديري مع منع عنوان قسم وحيد في الأسفل."""
+    if not blocks:
+        return []
+    pages: list[str] = []
+    current: list[dict] = []
+    used = 0.0
+    index = 0
+
+    def flush() -> None:
+        nonlocal current, used
+        if current:
+            pages.append("".join(item["html"] for item in current))
+            current = []
+            used = 0.0
+
+    while index < len(blocks):
+        block = blocks[index]
+        # لا يُترك عنوان قسم في أسفل الصفحة دون بطاقته الأولى
+        if block["kind"] == "heading" and index + 1 < len(blocks):
+            both = block["height"] + blocks[index + 1]["height"]
+            if current and used + both > PAGE_BODY_MM:
+                flush()
+        elif current and used + block["height"] > PAGE_BODY_MM:
+            flush()
+
+        if not current and block["height"] > PAGE_BODY_MM:
+            current.append(block)
+            flush()
+            index += 1
+            continue
+
+        current.append(block)
+        used += block["height"]
+        index += 1
+
+        if index >= len(blocks):
+            break
+        rem = PAGE_BODY_MM - used
+        nxt_need = _needed_height(blocks, index)
+        # ادمج القسم التالي فقط إن بقي >= 65mm ويتسع العنوان مع أول بطاقة
+        if nxt_need > rem:
+            flush()
+        elif blocks[index]["kind"] == "heading" and rem < MERGE_REMAINING_MM and nxt_need > rem:
+            flush()
+
+    flush()
+    return pages
+
+
 def _html_pages(report: dict) -> list[str]:
+    """الغلاف صفحة مستقلة، وبقية الأقسام عبر تجميع ذكي للارتفاع."""
     pages: list[str] = [_cover_html(report)]
+    blocks: list[dict] = []
+
     if report.get("showGov"):
-        pages.append(
-            f"""
-            <div class="sec-heading"><div>أولاً: الحوكمة والانضباط الإداري ومصفوفة القيم</div><span>المسؤولية</span></div>
-            <table class="official-table">
+        blocks.append(_heading_block("أولاً: الحوكمة والانضباط الإداري ومصفوفة القيم", "المسؤولية"))
+        gov_html = f"""
+            <table class="official-table keep">
               <thead><tr><th style="width:28%">المرتكز</th><th>التطبيق في قسم مرور العارضة</th></tr></thead>
               <tbody>
                 <tr><td><strong>الحوكمة والانضباط اليومي</strong></td><td>{esc(report.get("govText"))}</td></tr>
@@ -1409,14 +1520,14 @@ def _html_pages(report: dict) -> list[str]:
               </tbody>
             </table>
             """
-        )
+        blocks.append(_block(gov_html, _table_mm(2, row_mm=18.0)))
+
     if report.get("showAxes"):
         visible = [axis for axis in report["axes"] if axis.get("enabled", True)]
-        for chunk in _chunks(visible, 2):
-            cards = []
-            for axis in chunk:
-                cards.append(
-                    f"""
+        if visible:
+            blocks.append(_heading_block("المحاور العشرة للانضباط السلوكي", "تطبيقات القسم"))
+            for axis in visible:
+                card = f"""
                     <article class="keep">
                       <div class="sec-heading"><div>{esc(axis.get("name"))}</div><span>{esc(axis.get("motto"))}</span></div>
                       <p class="body">{esc(axis.get("text"))}</p>
@@ -1424,19 +1535,22 @@ def _html_pages(report: dict) -> list[str]:
                       {_photos_html(axis.get("photos") or [])}
                     </article>
                     """
-                )
-            pages.append("".join(cards))
+                # عنوان المحور داخل البطاقة محسوب ضمن ارتفاع البطاقة
+                height = _text_card_mm(axis.get("text"), axis.get("photos") or []) + 8.0
+                blocks.append(_block(card, height))
+
     if report.get("showApps") and report["apps"]:
-        for chunk in _chunks(report["apps"], 3):
-            cards = []
-            for app in chunk:
-                media = ""
-                if app.get("screenshot"):
-                    media += f'<img src="{embed_src(app["screenshot"])}" class="app-shot" alt="واجهة التطبيق">'
-                if app.get("qr"):
-                    media += f'<img src="{embed_src(app["qr"])}" class="app-qr" alt="رمز QR">'
-                cards.append(
-                    f"""
+        blocks.append(_heading_block("ثانياً: التحول الرقمي — حسم، رقابة، بينة", "مبادرات القسم"))
+        for app in report["apps"]:
+            media = ""
+            media_mm = 0.0
+            if app.get("screenshot"):
+                media += f'<img src="{embed_src(app["screenshot"])}" class="app-shot" alt="واجهة التطبيق">'
+                media_mm = max(media_mm, 28.0)
+            if app.get("qr"):
+                media += f'<img src="{embed_src(app["qr"])}" class="app-qr" alt="رمز QR">'
+                media_mm = max(media_mm, 24.0)
+            card = f"""
                     <div class="app-report-card keep">
                       <div>
                         <h4>{esc(app.get("name"))}</h4>
@@ -1447,12 +1561,10 @@ def _html_pages(report: dict) -> list[str]:
                       <div class="app-media">{media}</div>
                     </div>
                     """
-                )
-            pages.append(
-                '<div class="sec-heading"><div>ثانياً: التحول الرقمي — حسم، رقابة، بينة</div><span>مبادرات القسم</span></div>'
-                + "".join(cards)
-            )
+            blocks.append(_block(card, _text_card_mm(app.get("desc")) + media_mm))
+
     if report.get("showStaff") and report["staffList"]:
+        blocks.append(_heading_block("ثالثاً: تقييم الأفراد المتميزين", "لوحة الشرف"))
         rows = []
         for index, person in enumerate(report["staffList"], start=1):
             rows.append(
@@ -1467,10 +1579,9 @@ def _html_pages(report: dict) -> list[str]:
                 f"<td>{esc(person.get('reason'))}</td>"
                 "</tr>"
             )
-        pages.append(
+        staff_html = (
             """
-            <div class="sec-heading"><div>ثالثاً: تقييم الأفراد المتميزين</div><span>لوحة الشرف</span></div>
-            <table class="official-table staff">
+            <table class="official-table staff keep">
               <thead><tr><th>م</th><th>الرتبة والاسم</th><th>المهمة</th><th>الانضباط</th><th>الإتقان</th><th>التقنية</th><th>المتوسط</th><th>المبررات</th></tr></thead>
               <tbody>
             """
@@ -1478,7 +1589,7 @@ def _html_pages(report: dict) -> list[str]:
             + """
               </tbody>
             </table>
-            <div class="kpi-row">
+            <div class="kpi-row keep">
               <div><b>40%</b><span>الانضباط العسكري والقيافة</span></div>
               <div><b>30%</b><span>إتقان الواجب وسرعة الإنجاز</span></div>
               <div><b>20%</b><span>تطبيق حسم ورقابة وبينة</span></div>
@@ -1486,13 +1597,15 @@ def _html_pages(report: dict) -> list[str]:
             </div>
             """
         )
+        blocks.append(_block(staff_html, _table_mm(len(rows), row_mm=12.0) + 28.0))
+
     if report.get("showWorkshops"):
         for number, item in enumerate(report["workshops"], start=1):
             photos = item.get("photos") or []
-            pages.append(
-                f"""
-                <div class="sec-heading"><div>رابعاً: ورش العمل والاجتماعات ({number})</div><span>تثقيف الأفراد</span></div>
-                <table class="official-table">
+            blocks.append(_heading_block(f"رابعاً: ورش العمل والاجتماعات ({number})", "تثقيف الأفراد"))
+            first = photos[:4]
+            workshop_html = f"""
+                <table class="official-table keep">
                   <tbody>
                     <tr><th>العنوان</th><td>{esc(item.get("title"))}</td></tr>
                     <tr><th>الموقع</th><td>{esc(item.get("location"))}</td></tr>
@@ -1502,16 +1615,27 @@ def _html_pages(report: dict) -> list[str]:
                     <tr><th>المخرجات</th><td>{esc(item.get("outcomes"))}</td></tr>
                   </tbody>
                 </table>
-                {_photos_html(photos[:4])}
+                {_photos_html(first)}
                 """
+            blocks.append(
+                _block(
+                    workshop_html,
+                    _table_mm(6, row_mm=9.0) + _photo_block_mm(_photo_count(first)),
+                )
             )
             for extra in _chunks(photos[4:], 4):
-                pages.append(_photos_html(extra))
+                blocks.append(_block(_photos_html(extra), _photo_block_mm(_photo_count(extra))))
+
     if report.get("showField"):
-        seminar_html = []
+        blocks.append(_heading_block("خامساً: الانضباط الميداني والندوات", "هدفنا أمن وتواصل"))
+        blocks.append(
+            _block(
+                f'<div class="note keep"><h3>الجاهزية في محافظة العارضة</h3><p>{esc(report.get("fieldText"))}</p></div>',
+                _note_mm(report.get("fieldText")),
+            )
+        )
         for item in report["seminars"]:
-            seminar_html.append(
-                f"""
+            seminar = f"""
                 <table class="official-table keep">
                   <thead><tr><th colspan="2">{esc(item.get("title"))} ({esc(item.get("date"))})</th></tr></thead>
                   <tbody>
@@ -1521,15 +1645,15 @@ def _html_pages(report: dict) -> list[str]:
                 </table>
                 {_photos_html(item.get("photos") or [])}
                 """
+            blocks.append(
+                _block(
+                    seminar,
+                    _table_mm(2, row_mm=12.0) + _photo_block_mm(_photo_count(item.get("photos"))),
+                )
             )
-        pages.append(
-            f"""
-            <div class="sec-heading"><div>خامساً: الانضباط الميداني والندوات</div><span>هدفنا أمن وتواصل</span></div>
-            <div class="note"><h3>الجاهزية في محافظة العارضة</h3><p>{esc(report.get("fieldText"))}</p></div>
-            {''.join(seminar_html)}
-            """
-        )
+
     if report.get("showKpi"):
+        blocks.append(_heading_block("سادساً: مؤشرات الأثر", "قبل / بعد"))
         rows = []
         for row in report.get("comparisons") or []:
             rows.append(
@@ -1539,25 +1663,46 @@ def _html_pages(report: dict) -> list[str]:
                 f"<td>{esc(row.get('after'))}</td>"
                 "</tr>"
             )
-        pages.append(
-            f"""
-            <div class="sec-heading"><div>سادساً: مؤشرات الأثر</div><span>قبل / بعد</span></div>
-            <table class="official-table">
+        blocks.append(
+            _block(
+                f"""
+            <table class="official-table keep">
               <thead><tr><th>المعيار</th><th>قبل</th><th>بعد تفعيل المنظومات والورش</th></tr></thead>
               <tbody>{''.join(rows)}</tbody>
             </table>
-            <div class="sec-heading"><div>سابعاً: الميثاق والاعتماد</div><span>ختام التقرير</span></div>
-            <div class="note"><h3>ميثاق الانضباط السلوكي</h3><p>{br(report.get("pledge"))}</p></div>
-            <div class="note green"><h3>التوصيات</h3><p>{br(report.get("recommendations"))}</p></div>
-            <table class="official-table">
+            """,
+                _table_mm(len(rows) or 1, row_mm=11.0),
+            )
+        )
+        blocks.append(_heading_block("سابعاً: الميثاق والاعتماد", "ختام التقرير"))
+        blocks.append(
+            _block(
+                f'<div class="note keep"><h3>ميثاق الانضباط السلوكي</h3><p>{br(report.get("pledge"))}</p></div>',
+                _note_mm(report.get("pledge")),
+            )
+        )
+        blocks.append(
+            _block(
+                f'<div class="note green keep"><h3>التوصيات</h3><p>{br(report.get("recommendations"))}</p></div>',
+                _note_mm(report.get("recommendations")),
+            )
+        )
+        blocks.append(
+            _block(
+                f"""
+            <table class="official-table keep">
               <thead><tr><th>إعداد التقرير</th><th>اعتماد مدير القسم</th></tr></thead>
               <tbody><tr>
                 <td class="sign"><strong>{esc(report.get("author"))}</strong><br><br>التوقيع: ........................</td>
                 <td class="sign"><strong>{esc(report.get("manager"))}</strong><br><br>التوقيع والختم: ........................</td>
               </tr></tbody>
             </table>
-            """
+            """,
+                42.0,
+            )
         )
+
+    pages.extend(_pack_smart_pages(blocks))
     return pages
 
 
@@ -1618,18 +1763,22 @@ _HTML_SHELL = """<!DOCTYPE html>
     * { box-sizing: border-box; }
     body { margin:0; background:#cbd5e1; color:var(--ink); font-family:"Cairo",Tahoma,sans-serif; }
     .report-page {
-      width:210mm; min-height:297mm; margin:8mm auto; background:#fff; position:relative;
-      padding:16mm 14mm 18mm; display:flex; flex-direction:column; justify-content:space-between;
+      width:210mm; height:296.5mm; max-height:296.5mm; margin:8mm auto; background:#fff; position:relative;
+      padding:7mm 8mm; box-sizing:border-box; overflow:hidden;
+      display:flex; flex-direction:column; justify-content:space-between;
       box-shadow:0 8px 24px rgba(0,0,0,.18); page-break-after:always; break-after:page;
     }
     .report-page:last-child { page-break-after:auto; break-after:auto; }
-    .page-inner { position:relative; z-index:2; flex:1 1 auto; }
+    .page-inner { position:relative; z-index:2; flex:1 1 auto; min-height:0; overflow:hidden; }
     .report-page::before, .report-page::after {
       content:""; position:absolute; pointer-events:none; z-index:1;
     }
-    .report-page::before { inset:7mm; border:2px solid var(--green); }
-    .report-page::after { inset:9mm; border:1px solid var(--gold); }
-    .official-header { display:grid; grid-template-columns:1.3fr .8fr 1.3fr; gap:8px; align-items:center; border-bottom:3px double var(--gold); padding-bottom:8px; margin-bottom:12px; }
+    .report-page::before { inset:3.5mm; border:2px solid var(--green); }
+    .report-page::after { inset:5mm; border:1px solid var(--gold); }
+    .official-header {
+      display:grid; grid-template-columns:1.3fr .8fr 1.3fr; gap:8px; align-items:center;
+      border-bottom:3px double var(--gold); padding-bottom:8px; margin-bottom:8px; flex-shrink:0;
+    }
     .header-right { font-size:12px; font-weight:800; line-height:1.55; color:var(--deep); }
     .header-left { text-align:left; font-size:11px; font-weight:700; line-height:1.6; }
     .header-center { text-align:center; }
@@ -1669,7 +1818,11 @@ _HTML_SHELL = """<!DOCTYPE html>
     .photo img { width:100%; height:145px; object-fit: contain; background:#f8faf9; display:block; }
     .photo figcaption { background:var(--cream); text-align:center; font-size:11px; font-weight:700; padding:4px 6px; }
     .sign { text-align:center; padding:16px 8px; }
-    .page-footer { border-top:2px solid var(--gold); margin-top:12px; padding-top:6px; display:flex; justify-content:space-between; font-size:11px; font-weight:700; color:#475569; position:relative; z-index:2; }
+    .page-footer {
+      border-top:2px solid var(--gold); margin-top:auto; padding-top:6px; display:flex;
+      justify-content:space-between; font-size:11px; font-weight:700; color:#475569;
+      position:relative; z-index:2; flex-shrink:0;
+    }
     .keep { break-inside:avoid; page-break-inside:avoid; }
     .print-bar {
       max-width:210mm; margin:15px auto; display:flex; justify-content:space-between;
@@ -1683,7 +1836,7 @@ _HTML_SHELL = """<!DOCTYPE html>
       font-family:"Cairo",Tahoma,sans-serif; white-space:nowrap;
     }
     @media print {
-      @page { size:A4 portrait; margin:0; }
+      @page { size:A4 portrait; margin:0mm; }
       html, body {
         background:#fff !important; margin:0 !important; padding:0 !important;
         -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important;
@@ -1691,8 +1844,9 @@ _HTML_SHELL = """<!DOCTYPE html>
       * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
       .print-bar { display:none !important; }
       .report-page {
-        width:210mm; min-height:297mm; height:297mm; margin:0; padding:16mm 14mm 18mm;
-        box-shadow:none; overflow:hidden;
+        width:210mm; height:296.5mm; max-height:296.5mm; margin:0; padding:7mm 8mm;
+        box-sizing:border-box; box-shadow:none; overflow:hidden;
+        display:flex; flex-direction:column; justify-content:space-between;
         page-break-after:always; break-after:page;
         page-break-inside:avoid; break-inside:avoid;
       }
@@ -1701,13 +1855,15 @@ _HTML_SHELL = """<!DOCTYPE html>
         display:block !important; content:"" !important; position:absolute !important;
         pointer-events:none !important; z-index:1 !important;
       }
-      .report-page::before { inset:7mm !important; border:2px solid var(--green) !important; }
-      .report-page::after { inset:9mm !important; border:1px solid var(--gold) !important; }
+      .report-page::before { inset:3.5mm !important; border:2px solid var(--green) !important; }
+      .report-page::after { inset:5mm !important; border:1px solid var(--gold) !important; }
+      .official-header { flex-shrink:0; break-inside:avoid; page-break-inside:avoid; }
+      .page-inner { flex:1 1 auto; min-height:0; }
       .page-footer {
-        display:flex !important; position:relative; z-index:2;
-        break-inside:avoid; page-break-inside:avoid;
+        display:flex !important; margin-top:auto !important; flex-shrink:0 !important;
+        position:relative; z-index:2; break-inside:avoid; page-break-inside:avoid;
       }
-      .official-header, .sec-heading {
+      .sec-heading {
         break-inside:avoid; page-break-inside:avoid;
         break-after:avoid; page-break-after:avoid;
       }
