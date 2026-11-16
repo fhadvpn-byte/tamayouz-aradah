@@ -1348,19 +1348,20 @@ def sidebar_tools(report: dict) -> None:
 
 def build_report_html(report: dict) -> str:
     pages = _html_pages(report)
-    total = max(len(pages), 1)
     if not pages:
         pages = ["<p>فعّل محوراً واحداً على الأقل من الشريط الجانبي.</p>"]
     body = []
-    for index, content in enumerate(pages, start=1):
+    for index, content in enumerate(pages):
+        is_cover = index == 0
+        header = _html_header(report) if is_cover else ""
+        page_class = "report-page cover-page" if is_cover else "report-page"
         body.append(
             f"""
-            <section class="report-page">
+            <section class="{page_class}">
               <div class="page-inner">
-                {_html_header(report)}
+                {header}
                 {content}
               </div>
-              {_html_footer(index, total)}
             </section>
             """
         )
@@ -1381,16 +1382,6 @@ def _html_header(report: dict) -> str:
         التاريخ الميلادي: {esc(report.get("greg"))}<br>
         شعار الجائزة: <strong>هدفنا أمن وتواصل</strong>
       </div>
-    </div>
-    """
-
-
-def _html_footer(page: int, total: int) -> str:
-    return f"""
-    <div class="page-footer">
-      <span>إدارة مرور منطقة جازان - قسم مرور محافظة العارضة</span>
-      <span>جائزة معالي مدير الأمن العام للانضباط السلوكي</span>
-      <span>صفحة {page} من {total}</span>
     </div>
     """
 
@@ -1621,10 +1612,10 @@ _HTML_SHELL = """<!DOCTYPE html>
     body { margin:0; background:#cbd5e1; color:var(--ink); font-family:"Cairo",Tahoma,sans-serif; }
     .report-page {
       width:210mm; min-height:297mm; margin:8mm auto; background:#fff; position:relative;
-      padding:16mm 14mm 18mm; display:flex; flex-direction:column; justify-content:space-between;
-      box-shadow:0 8px 24px rgba(0,0,0,.18); page-break-after:always; break-after:page;
+      padding:16mm 14mm 18mm; display:flex; flex-direction:column; justify-content:flex-start;
+      box-shadow:0 8px 24px rgba(0,0,0,.18); page-break-after:auto; break-after:auto;
     }
-    .report-page:last-child { page-break-after:auto; break-after:auto; }
+    .cover-page { page-break-after:always; break-after:page; }
     .page-inner { position:relative; z-index:2; }
     .report-page::before, .report-page::after {
       content:""; position:absolute; pointer-events:none;
@@ -1685,37 +1676,38 @@ _HTML_SHELL = """<!DOCTYPE html>
       font-family:"Cairo",Tahoma,sans-serif; white-space:nowrap;
     }
     @media print {
-      @page { size:A4 portrait; margin:10mm 8mm 12mm; }
+      @page { size:A4; margin:10mm; }
       html, body {
         background:#fff !important; margin:0 !important; padding:0 !important;
         -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important;
       }
       * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
-      .print-bar { display:none !important; }
+      .print-bar, .page-footer { display:none !important; }
       .report-page {
         width:auto; min-height:0 !important; height:auto !important; margin:0; padding:0;
-        box-shadow:none; display:block; justify-content:flex-start;
+        border:none !important; box-shadow:none !important; display:block;
         page-break-after:auto; break-after:auto;
         page-break-inside:auto; break-inside:auto;
       }
-      .report-page::before, .report-page::after { display:none !important; }
+      .cover-page {
+        page-break-after:always !important; break-after:page !important;
+      }
+      .report-page::before, .report-page::after { display:none !important; border:none !important; }
       .page-inner { overflow:visible; }
-      .cover, .cover .title-frame, .cover .badge {
-        break-inside:avoid; page-break-inside:avoid;
-      }
-      .cover .title-frame {
-        margin-top:2mm;
-        box-decoration-break:clone; -webkit-box-decoration-break:clone;
-      }
-      .sec-heading {
+      .official-header {
         break-inside:avoid; page-break-inside:avoid;
         break-after:avoid; page-break-after:avoid;
       }
-      .keep, .axis-block, .app-report-card, .photo, .note, .kpi-row, .signs {
-        break-inside:avoid !important; page-break-inside:avoid !important;
+      .cover, .cover .title-frame, .cover .badge, .cover .signs, .cover .kpi-row {
+        break-inside:avoid; page-break-inside:avoid;
       }
-      .page-footer {
-        margin-top:6mm; break-inside:avoid; page-break-inside:avoid;
+      .sec-heading {
+        break-inside:avoid; page-break-inside:avoid;
+        break-after:avoid !important; page-break-after:avoid !important;
+      }
+      .keep, .axis-block, .app-report-card, .photo, .note, .kpi-row, .signs,
+      .official-table, .official-table tr, .official-table thead, .official-table tbody {
+        break-inside:avoid !important; page-break-inside:avoid !important;
       }
     }
   </style>
