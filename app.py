@@ -686,16 +686,26 @@ def load_data() -> dict:
     return load_permanent_db()
 
 
-def _github_sync(content_str: str) -> None:
+def _github_secrets() -> tuple[str, str, str]:
     try:
         secrets = st.secrets
         token = str(secrets["GITHUB_TOKEN"]).strip() if "GITHUB_TOKEN" in secrets else ""
         repo = str(secrets["GITHUB_REPO"]).strip() if "GITHUB_REPO" in secrets else ""
         branch = str(secrets["GITHUB_BRANCH"]).strip() if "GITHUB_BRANCH" in secrets else ""
+        return token, repo, branch
     except Exception:
-        return
+        return "", "", ""
+
+
+def github_sync_ready() -> bool:
+    token, repo, _branch = _github_secrets()
+    return bool(token and repo)
+
+
+def _github_sync(content_str: str) -> bool:
+    token, repo, branch = _github_secrets()
     if not token or not repo:
-        return
+        return False
     url = f"https://api.github.com/repos/{repo}/contents/{DB_FILE.name}"
     headers = {
         "Authorization": f"token {token}",
@@ -712,28 +722,34 @@ def _github_sync(content_str: str) -> None:
             payload["sha"] = sha
         if branch:
             payload["branch"] = branch
-        requests.put(url, headers=headers, json=payload, timeout=30)
+        response = requests.put(url, headers=headers, json=payload, timeout=30)
+        return response.status_code in (200, 201)
     except Exception:
-        return
+        return False
 
 
-def save_permanent_db(data: dict) -> None:
+def save_permanent_db(data: dict, *, sync_cloud: bool = True) -> bool:
     content_str = json.dumps(data, ensure_ascii=False, indent=2)
     DB_FILE.write_text(content_str, encoding="utf-8")
-    _github_sync(content_str)
+    if not sync_cloud:
+        return False
+    return _github_sync(content_str)
 
 
 def save_data(data: dict) -> None:
     save_permanent_db(data)
 
 
-def persist_report() -> None:
+def persist_report(*, sync_cloud: bool = True) -> bool:
     report = st.session_state.get("report")
     if not isinstance(report, dict):
-        return
-    save_permanent_db(report)
+        return False
+    synced = save_permanent_db(report, sync_cloud=sync_cloud)
     if isinstance(report.get("apps"), list):
         save_apps(report["apps"])
+    st.session_state["tm_last_save"] = str(DB_FILE.name)
+    st.session_state["tm_cloud_synced"] = bool(synced)
+    return synced
 
 
 def commit_and_rerun() -> None:
@@ -1322,12 +1338,34 @@ def sidebar_tools(report: dict) -> None:
     with st.sidebar:
         st.divider()
         st.markdown("**حفظ البيانات واستعادتها**")
+        cloud_ready = github_sync_ready()
+        if cloud_ready:
+            st.caption("المزامنة السحابية: جاهزة عبر GitHub Secrets")
+        else:
+            st.caption("المزامنة السحابية: أضف GITHUB_TOKEN وGITHUB_REPO في Secrets")
+        if st.session_state.get("tm_last_save"):
+            synced = st.session_state.get("tm_cloud_synced")
+            st.caption(
+                f"آخر حفظ محلي: {st.session_state['tm_last_save']}"
+                + (" — تمت مزامنة GitHub" if synced else " — محلي فقط")
+            )
+        if st.button("حفظ الآن", icon=":material/save:", width="stretch", type="primary"):
+            synced = persist_report(sync_cloud=True)
+            if synced:
+                st.session_state["flash"] = "تم الحفظ المحلي ومزامنة GitHub."
+            else:
+                st.session_state["flash"] = "تم الحفظ المحلي في permanent_tamayouz_db.json."
+            st.rerun()
+        if st.button("مزامنة GitHub", icon=":material/cloud_upload:", width="stretch", disabled=not cloud_ready):
+            synced = persist_report(sync_cloud=True)
+            st.session_state["flash"] = "تمت مزامنة البيانات مع GitHub." if synced else "تعذرت المزامنة. راجع التوكن والمستودع."
+            st.rerun()
         st.download_button(
-            "حفظ ملف JSON",
+            "تصدير ملف JSON",
             data=json.dumps(report, ensure_ascii=False, indent=2).encode("utf-8"),
             file_name="تقرير-تميز.json",
             mime="application/json",
-            icon=":material/save:",
+            icon=":material/download:",
             width="stretch",
         )
         uploaded = st.file_uploader("فتح ملف سابق", type=["json"], key="tm_import")
@@ -1342,7 +1380,7 @@ def sidebar_tools(report: dict) -> None:
         if st.button("استعادة الافتراضي", icon=":material/restart_alt:", width="stretch"):
             st.session_state["pending_reset"] = True
             commit_and_rerun()
-        st.caption("كل تعديل يُحفظ في permanent_tamayouz_db.json مع الصور كـ Base64. أضف GITHUB_TOKEN وGITHUB_REPO في Secrets للمزامنة السحابية.")
+        st.caption("الحفظ التلقائي يكتب permanent_tamayouz_db.json مع الصور كـ Base64، ويُزامن مع GitHub عند توفر Secrets.")
         st.caption("هدفنا أمن وتواصل")
 
 
